@@ -1,0 +1,33 @@
+# Rust build artifacts
+/target/
+dvd2chd-core/target/
+dvd2chd-gui/target/
+
+# Cargo lock for libraries (keep for binaries)
+# Cargo.lock is intentionally tracked for workspace binaries
+
+# IDE / editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Local test/scratch files
+*.iso
+*.chd
+*.cue
+*.bin
+*.map
+*.part
+
+# Backup files
+*.bak
+*.orig
+
+# Logs
+*.log

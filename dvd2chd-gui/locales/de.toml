@@ -1,0 +1,207 @@
+# === Toolbar ===
+"toolbar.controls" = "☰ Steuerung"
+"toolbar.panel" = "☰ Panel"
+"toolbar.toggle_panel" = "Steuerpanel ein/aus"
+"toolbar.start" = "▶ Start"
+"toolbar.start_shortcut" = "Strg/⌘+S"
+"toolbar.stop" = "⏹ Stop"
+"toolbar.stop_hint" = "Aktuellen Job stoppen"
+"toolbar.installing" = "⏳ Installiere…"
+"toolbar.install" = "⬇ Installieren"
+"toolbar.install_hint" = "Fehlende Tools automatisch via %{pm} installieren (pkexec)"
+"toolbar.log_hide" = "Log ausblenden"
+"toolbar.log_show" = "Log anzeigen"
+"toolbar.theme" = "🎨 Design"
+"toolbar.theme_auto" = "System-Automatik"
+"toolbar.reduce_motion" = "Bewegung reduzieren"
+"toolbar.language" = "Sprache"
+"toolbar.zoom_minus" = "Zoom -10%"
+"toolbar.zoom_plus" = "Zoom +10%"
+"toolbar.about" = "Über DVD2CHD"
+
+# === Theme ===
+"theme.dark" = "Dunkel"
+"theme.light" = "Hell"
+"theme.high_contrast" = "Kontrast"
+
+# === Panels ===
+"panel.source" = "Quelle"
+"panel.extract" = "CHD extrahieren"
+"panel.target" = "Ziel"
+"panel.options" = "Optionen"
+"panel.ripping" = "Ripping"
+"panel.chd_hashes" = "CHD & Hashes"
+"panel.tools" = "Tools"
+"panel.file_mode" = "Datei-Modus"
+"panel.quickstart" = "Schnellstart"
+"panel.presets" = "Presets"
+"panel.batch" = "Batch"
+"panel.dropzone" = "Dropzone (ISO/CUE)"
+
+# === Source ===
+"source.choose_file" = "Datei wählen…"
+"source.set_device" = "Gerät setzen…"
+"source.eject" = "⏏ Auswerfen"
+"source.detect_drive" = "Laufwerk erkennen"
+"source.profile_label" = "Profil:"
+
+# === Target ===
+"target.set_folder" = "Ausgabeordner…"
+"target.open_folder" = "Ordner öffnen"
+
+# === Ripping ===
+"ripping.rescue_pass" = "Rettungs-Pass (-r3)"
+"ripping.cd_speed" = "CD-Speed:"
+"ripping.buffers" = "Buffers:"
+
+# === CHD ===
+"chd.delete_after" = "Image nach CHD löschen"
+"chd.rename_by_id" = "Nach ID (PS) umbenennen"
+"chd.rename_by_label" = "Nach Volume-Label umbenennen"
+"chd.extra_args" = "chdman-Args:"
+
+# === Tools ===
+"tools.refresh" = "Status aktualisieren"
+"tools.open_folder" = "Tools-Ordner öffnen"
+"tools.chdman_download" = "chdman Download"
+"tools.chdman_loading" = "⬇ Lädt…"
+"tools.chdman_download_hint" = "chdman vom eigenen GitHub-Release herunterladen"
+
+# === Quickstart ===
+"quickstart.file" = "Datei:   %{name}"
+"quickstart.device" = "Gerät:   %{path}"
+"quickstart.target" = "Ziel:    %{path}"
+"quickstart.open_output" = "Ausgabeordner öffnen"
+"quickstart.cannot_start" = "Start nicht möglich:"
+
+# === Presets ===
+"presets.empty" = "Noch keine Presets gespeichert."
+"presets.load" = "Laden"
+"presets.delete" = "Löschen"
+"presets.name_label" = "Preset-Name:"
+"presets.save" = "Aktuelle Einstellungen speichern"
+"presets.name_required" = "Bitte einen Preset-Namen eingeben."
+
+# === Batch ===
+"batch.add_files" = "Dateien hinzufügen…"
+"batch.title" = "Batch-Dateien hinzufügen"
+"batch.clear" = "Leeren"
+"batch.empty" = "Keine Dateien in der Warteschlange."
+"batch.start" = "Batch starten"
+"batch.empty_warning" = "Batch-Warteschlange ist leer."
+
+# === Dropzone ===
+"dropzone.hint" = "Datei hierher ziehen\noder klicken zum Auswählen"
+
+# === Dialog ===
+"dialog.name_disc" = "Disc benennen?"
+"dialog.name_disc_hint" = "Kein Disc-Name erkannt. Eigenen Namen vergeben?"
+"dialog.name_label" = "Name:"
+"dialog.cancel" = "Abbrechen"
+"dialog.start_unnamed" = "Ohne Namen starten"
+"dialog.start" = "Starten"
+"dialog.name_required" = "Bitte einen Namen eingeben."
+
+# === About ===
+"about.license" = "Lizenz: siehe LICENSE (MIT) und Abhängigkeiten"
+
+# === Drive ===
+"drive.unknown" = "Unbekannt"
+
+# === Tool requirements ===
+"tool.chdman_missing" = "chdman fehlt (Tool-Pfad in den Optionen setzen)"
+"tool.ddrescue_missing" = "ddrescue fehlt (ddrescue-Option aktiviert)"
+"tool.cdrdao_missing" = "cdrdao fehlt (Laufwerks-Rip benötigt)"
+
+# === Stage labels ===
+"stage.ripping" = "Rippen"
+"stage.chd" = "CHD"
+"stage.verify" = "Verify"
+"stage.hashes" = "Hashes"
+
+# === Log messages ===
+"log.abort_requested" = "⏹ Abbruch angefordert …\n"
+"log.no_drive" = "🔎 Kein optisches Laufwerk gefunden\n"
+"log.drive_detected" = "🔎 Laufwerk erkannt: %{path} — %{label}\n"
+"log.no_output_folder" = "✖ Kein Zielordner gewählt\n"
+"log.no_source" = "✖ Keine Quelle gewählt (Datei oder Gerät)\n"
+"log.source_not_found" = "✖ Quelle nicht gefunden: %{path}\n"
+"log.batch_duplicate" = "ℹ Bereits in Batch: %{path}\n"
+"log.batch_added" = "➕ Zur Batch-Warteschlange hinzugefügt: %{path}\n"
+"log.batch_no_target" = "✖ Kein Zielordner für Batch festgelegt\n"
+"log.batch_start" = "▶ Batch-Start: %{path}\n"
+"log.batch_cleared" = "🧹 Batch-Warteschlange geleert\n"
+"log.batch_failed" = "✖ Batch konnte nicht gestartet werden\n"
+"log.preset_loaded" = "📦 Preset '%{name}' geladen\n"
+"log.preset_deleted" = "🗑 Preset '%{name}' gelöscht\n"
+"log.preset_updated" = "💾 Preset '%{name}' aktualisiert\n"
+"log.preset_saved" = "💾 Preset '%{name}' gespeichert\n"
+"log.preset_name_required" = "✖ Bitte einen Preset-Namen eingeben\n"
+"log.presets_save_failed" = "✖ Presets speichern fehlgeschlagen: %{err}\n"
+"log.ui_prefs_save_failed" = "✖ UI-Einstellungen konnten nicht gespeichert werden: %{err}\n"
+"log.cannot_open_folder" = "✖ Ordner kann nicht geöffnet werden: %{err}\n"
+"log.file_selected" = "📥 Datei gewählt\n"
+"log.installing_tools" = "⬇ Installiere fehlende Tools via %{pm}…\n"
+"log.no_manifest_url" = "⚠ Keine Manifest-URL konfiguriert (Optionen → Tools)\n"
+"log.downloading_chdman" = "⬇ Lade chdman herunter…\n"
+
+# === Start status reasons ===
+"status.no_output_folder" = "Zielordner fehlt"
+"status.no_source" = "Quelle fehlt"
+"status.job_running" = "es läuft schon ein Job"
+
+# === Log panel UI ===
+"log.heading" = "Log"
+"log.save" = "Speichern…"
+"log.copy" = "Kopieren"
+"log.clear_btn" = "Löschen"
+"log.auto_clear" = "Log vor Start leeren"
+
+# === Job results ===
+"label.done" = "Fertig"
+"label.starting" = "Starte…"
+"label.verification_starting" = "Verifizierung…"
+"label.verification_done" = "Verifizierung abgeschlossen"
+"label.verification_prefix" = "Verifizierung"
+"label.creating_chd" = "CHD wird erstellt…"
+"log.job_done" = "✔ Fertig: %{path}\n"
+"log.job_error" = "✖ Fehler: %{err}\n"
+"log.tools_installed" = "✅ Installiert: %{pkgs}\n"
+"log.install_failed" = "✖ Installation fehlgeschlagen: %{err}\n"
+"log.chdman_installed" = "✅ chdman installiert: %{path}\n"
+"log.chdman_dl_failed" = "✖ chdman-Download fehlgeschlagen: %{err}\n"
+"log.drop_accepted" = "📥 Drop: Datei übernommen\n"
+"log.drop_batch_added" = "➕ Weitere Dateien zur Batch-Warteschlange hinzugefügt\n"
+"log.drive_set" = "🔎 Laufwerk gesetzt: %{path}\n"
+"log.eject_ok" = "💿 Laufwerk ausgeworfen: %{path}\n"
+"log.eject_failed" = "⚠ Auswerfen fehlgeschlagen (%{err}): %{path}\n"
+
+# === Drive picker ===
+"drive.picker_title" = "Laufwerk wählen"
+"drive.no_drive" = "Kein Laufwerk erkannt."
+"drive.close" = "Schließen"
+"drive.please_choose" = "Bitte wählen"
+"drive.detected" = "Erkanntes Laufwerk"
+"drive.apply" = "Übernehmen"
+"drive.cancel" = "Abbrechen"
+
+# === New feature labels ===
+"chd.auto_eject" = "Laufwerk auswerfen"
+"chd.notify_on_done" = "Benachrichtigung bei Fertigstellung"
+
+# === Extract ===
+"extract.choose_chd" = "CHD wählen…"
+"extract.out_dir" = "Zielordner…"
+"extract.mode_label" = "Modus:"
+"extract.mode_auto" = "Auto"
+"extract.mode_dvd" = "DVD → ISO"
+"extract.mode_cd" = "CD → BIN+CUE"
+"extract.start" = "Extrahieren"
+"log.extract_no_chd" = "✖ Keine CHD-Datei gewählt\n"
+"log.extract_start" = "▶ Extrahiere: %{path}…\n"
+
+# === Job history ===
+"history.heading" = "Verlauf"
+"history.empty" = "Noch kein Job abgeschlossen."
+"history.chd_size" = "Größe:"
+"history.open" = "Öffnen"

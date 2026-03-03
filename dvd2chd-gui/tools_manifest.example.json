@@ -1,0 +1,92 @@
+{
+  "updated": "2024-01-01T00:00:00Z",
+  "tools": [
+    {
+      "name": "chdman",
+      "version": "255.0",
+      "description": "Official CHDMAN binary packaged for DVD2CHD.",
+      "homepage": "https://github.com/itsgopnik/DVD2CHD",
+      "platforms": [
+        {
+          "os": "linux",
+          "arch": "*",
+          "url": "https://github.com/itsgopnik/DVD2CHD/releases/download/v0.1.0/chdman-linux",
+          "checksum": "sha256:PLACEHOLDER",
+          "binary_name": "chdman"
+        },
+        {
+          "os": "windows",
+          "arch": "*",
+          "url": "https://github.com/itsgopnik/DVD2CHD/releases/download/v0.1.0/chdman.exe",
+          "checksum": "sha256:PLACEHOLDER",
+          "binary_name": "chdman.exe"
+        },
+        {
+          "os": "macos",
+          "arch": "*",
+          "url": "https://github.com/itsgopnik/DVD2CHD/releases/download/v0.1.0/chdman-macos",
+          "checksum": "sha256:PLACEHOLDER",
+          "binary_name": "chdman"
+        }
+      ]
+    },
+    {
+      "name": "ddrescue",
+      "version": "1.27",
+      "description": "GNU ddrescue packaged for DVD2CHD.",
+      "homepage": "https://github.com/itsgopnik/DVD2CHD",
+      "platforms": [
+        {
+          "os": "linux",
+          "arch": "*",
+          "url": "https://github.com/itsgopnik/DVD2CHD/releases/download/v0.1.0/ddrescue-linux",
+          "checksum": "sha256:PLACEHOLDER",
+          "binary_name": "ddrescue"
+        },
+        {
+          "os": "windows",
+          "arch": "*",
+          "url": "https://github.com/itsgopnik/DVD2CHD/releases/download/v0.1.0/ddrescue.exe",
+          "checksum": "sha256:PLACEHOLDER",
+          "binary_name": "ddrescue.exe"
+        },
+        {
+          "os": "macos",
+          "arch": "*",
+          "url": "https://github.com/itsgopnik/DVD2CHD/releases/download/v0.1.0/ddrescue-macos",
+          "checksum": "sha256:PLACEHOLDER",
+          "binary_name": "ddrescue"
+        }
+      ]
+    },
+    {
+      "name": "cdrdao",
+      "version": "1.2.5",
+      "description": "cdrdao binaries prepared for DVD2CHD.",
+      "homepage": "https://github.com/itsgopnik/DVD2CHD",
+      "platforms": [
+        {
+          "os": "linux",
+          "arch": "*",
+          "url": "https://github.com/itsgopnik/DVD2CHD/releases/download/v0.1.0/cdrdao-linux",
+          "checksum": "sha256:PLACEHOLDER",
+          "binary_name": "cdrdao"
+        },
+        {
+          "os": "windows",
+          "arch": "*",
+          "url": "https://github.com/itsgopnik/DVD2CHD/releases/download/v0.1.0/cdrdao.exe",
+          "checksum": "sha256:PLACEHOLDER",
+          "binary_name": "cdrdao.exe"
+        },
+        {
+          "os": "macos",
+          "arch": "*",
+          "url": "https://github.com/itsgopnik/DVD2CHD/releases/download/v0.1.0/cdrdao-macos",
+          "checksum": "sha256:PLACEHOLDER",
+          "binary_name": "cdrdao"
+        }
+      ]
+    }
+  ]
+}

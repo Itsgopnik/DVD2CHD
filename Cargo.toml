@@ -1,0 +1,3 @@
+[workspace]
+members = ["dvd2chd-core", "dvd2chd-gui"]
+resolver = "2"

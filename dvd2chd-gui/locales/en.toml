@@ -1,0 +1,207 @@
+# === Toolbar ===
+"toolbar.controls" = "☰ Controls"
+"toolbar.panel" = "☰ Panel"
+"toolbar.toggle_panel" = "Toggle control panel"
+"toolbar.start" = "▶ Start"
+"toolbar.start_shortcut" = "Ctrl/⌘+S"
+"toolbar.stop" = "⏹ Stop"
+"toolbar.stop_hint" = "Stop current job"
+"toolbar.installing" = "⏳ Installing…"
+"toolbar.install" = "⬇ Install"
+"toolbar.install_hint" = "Auto-install missing tools via %{pm} (pkexec)"
+"toolbar.log_hide" = "Hide log"
+"toolbar.log_show" = "Show log"
+"toolbar.theme" = "🎨 Theme"
+"toolbar.theme_auto" = "Follow system"
+"toolbar.reduce_motion" = "Reduce motion"
+"toolbar.language" = "Language"
+"toolbar.zoom_minus" = "Zoom -10%"
+"toolbar.zoom_plus" = "Zoom +10%"
+"toolbar.about" = "About DVD2CHD"
+
+# === Theme ===
+"theme.dark" = "Dark"
+"theme.light" = "Light"
+"theme.high_contrast" = "High contrast"
+
+# === Panels ===
+"panel.source" = "Source"
+"panel.extract" = "Extract CHD"
+"panel.target" = "Target"
+"panel.options" = "Options"
+"panel.ripping" = "Ripping"
+"panel.chd_hashes" = "CHD & hashes"
+"panel.tools" = "Tools"
+"panel.file_mode" = "File Mode"
+"panel.quickstart" = "Quick Start"
+"panel.presets" = "Presets"
+"panel.batch" = "Batch"
+"panel.dropzone" = "Dropzone (ISO/CUE)"
+
+# === Source ===
+"source.choose_file" = "Choose file…"
+"source.set_device" = "Set device…"
+"source.eject" = "⏏ Eject"
+"source.detect_drive" = "Detect drive"
+"source.profile_label" = "Profile:"
+
+# === Target ===
+"target.set_folder" = "Set output folder…"
+"target.open_folder" = "Open folder"
+
+# === Ripping ===
+"ripping.rescue_pass" = "Rescue pass (-r3)"
+"ripping.cd_speed" = "CD speed:"
+"ripping.buffers" = "Buffers:"
+
+# === CHD ===
+"chd.delete_after" = "Delete image after CHD"
+"chd.rename_by_id" = "Rename using ID (PS)"
+"chd.rename_by_label" = "Rename using volume label"
+"chd.extra_args" = "chdman args:"
+
+# === Tools ===
+"tools.refresh" = "Refresh status"
+"tools.open_folder" = "Open tools folder"
+"tools.chdman_download" = "chdman download"
+"tools.chdman_loading" = "⬇ Loading…"
+"tools.chdman_download_hint" = "Download chdman from your own GitHub release"
+
+# === Quickstart ===
+"quickstart.file" = "File:   %{name}"
+"quickstart.device" = "Device:   %{path}"
+"quickstart.target" = "Target: %{path}"
+"quickstart.open_output" = "Open output folder"
+"quickstart.cannot_start" = "Cannot start:"
+
+# === Presets ===
+"presets.empty" = "No presets stored yet."
+"presets.load" = "Load"
+"presets.delete" = "Delete"
+"presets.name_label" = "Preset name:"
+"presets.save" = "Save current settings"
+"presets.name_required" = "Please enter a preset name."
+
+# === Batch ===
+"batch.add_files" = "Add files…"
+"batch.title" = "Add batch files"
+"batch.clear" = "Clear"
+"batch.empty" = "No files in the queue."
+"batch.start" = "Start batch"
+"batch.empty_warning" = "Batch queue is empty."
+
+# === Dropzone ===
+"dropzone.hint" = "Drop a file here\nor click to select"
+
+# === Dialog ===
+"dialog.name_disc" = "Name the disc?"
+"dialog.name_disc_hint" = "No disc name detected. Set a custom name?"
+"dialog.name_label" = "Name:"
+"dialog.cancel" = "Cancel"
+"dialog.start_unnamed" = "Start without name"
+"dialog.start" = "Start"
+"dialog.name_required" = "Please enter a name."
+
+# === About ===
+"about.license" = "License: see LICENSE (MIT) and dependencies"
+
+# === Drive ===
+"drive.unknown" = "Unknown"
+
+# === Tool requirements ===
+"tool.chdman_missing" = "chdman missing (configure tool path)"
+"tool.ddrescue_missing" = "ddrescue missing (option enabled)"
+"tool.cdrdao_missing" = "cdrdao missing (required for drive ripping)"
+
+# === Stage labels ===
+"stage.ripping" = "Ripping"
+"stage.chd" = "CHD"
+"stage.verify" = "Verify"
+"stage.hashes" = "Hashes"
+
+# === Log messages ===
+"log.abort_requested" = "⏹ Abort requested …\n"
+"log.no_drive" = "🔎 No optical drive found\n"
+"log.drive_detected" = "🔎 Detected drive: %{path} — %{label}\n"
+"log.no_output_folder" = "✖ No output folder selected\n"
+"log.no_source" = "✖ No source selected (file or device)\n"
+"log.source_not_found" = "✖ Source file not found: %{path}\n"
+"log.batch_duplicate" = "ℹ Already in batch: %{path}\n"
+"log.batch_added" = "➕ Added to batch queue: %{path}\n"
+"log.batch_no_target" = "✖ No target folder set for batch\n"
+"log.batch_start" = "▶ Batch start: %{path}\n"
+"log.batch_cleared" = "🧹 Cleared batch queue\n"
+"log.batch_failed" = "✖ Could not start batch\n"
+"log.preset_loaded" = "📦 Loaded preset '%{name}'\n"
+"log.preset_deleted" = "🗑 Deleted preset '%{name}'\n"
+"log.preset_updated" = "💾 Updated preset '%{name}'\n"
+"log.preset_saved" = "💾 Saved preset '%{name}'\n"
+"log.preset_name_required" = "✖ Please enter a preset name\n"
+"log.presets_save_failed" = "✖ Failed to save presets: %{err}\n"
+"log.ui_prefs_save_failed" = "✖ Could not save UI settings: %{err}\n"
+"log.cannot_open_folder" = "✖ Cannot open folder: %{err}\n"
+"log.file_selected" = "📥 File selected\n"
+"log.installing_tools" = "⬇ Installing missing tools via %{pm}…\n"
+"log.no_manifest_url" = "⚠ No manifest URL configured (Options → Tools)\n"
+"log.downloading_chdman" = "⬇ Downloading chdman…\n"
+
+# === Start status reasons ===
+"status.no_output_folder" = "Output folder missing"
+"status.no_source" = "Source missing"
+"status.job_running" = "a job is already running"
+
+# === Log panel UI ===
+"log.heading" = "Log"
+"log.save" = "Save…"
+"log.copy" = "Copy"
+"log.clear_btn" = "Clear"
+"log.auto_clear" = "Clear log before start"
+
+# === Job results ===
+"label.done" = "Finished"
+"label.starting" = "Starting…"
+"label.verification_starting" = "Verification…"
+"label.verification_done" = "Verification complete"
+"label.verification_prefix" = "Verification"
+"label.creating_chd" = "Creating CHD…"
+"log.job_done" = "✔ Done: %{path}\n"
+"log.job_error" = "✖ Error: %{err}\n"
+"log.tools_installed" = "✅ Installed: %{pkgs}\n"
+"log.install_failed" = "✖ Installation failed: %{err}\n"
+"log.chdman_installed" = "✅ chdman installed: %{path}\n"
+"log.chdman_dl_failed" = "✖ chdman download failed: %{err}\n"
+"log.drop_accepted" = "📥 Drop: File accepted\n"
+"log.drop_batch_added" = "➕ Added more files to the batch queue\n"
+"log.drive_set" = "🔎 Drive set: %{path}\n"
+"log.eject_ok" = "💿 Drive ejected: %{path}\n"
+"log.eject_failed" = "⚠ Eject failed (%{err}): %{path}\n"
+
+# === Drive picker ===
+"drive.picker_title" = "Select drive"
+"drive.no_drive" = "No drive detected."
+"drive.close" = "Close"
+"drive.please_choose" = "Please choose"
+"drive.detected" = "Detected drive"
+"drive.apply" = "Apply"
+"drive.cancel" = "Cancel"
+
+# === New feature labels ===
+"chd.auto_eject" = "Eject after rip"
+"chd.notify_on_done" = "Notify on completion"
+
+# === Extract ===
+"extract.choose_chd" = "Choose CHD…"
+"extract.out_dir" = "Output folder…"
+"extract.mode_label" = "Mode:"
+"extract.mode_auto" = "Auto"
+"extract.mode_dvd" = "DVD → ISO"
+"extract.mode_cd" = "CD → BIN+CUE"
+"extract.start" = "Extract"
+"log.extract_no_chd" = "✖ No CHD file selected\n"
+"log.extract_start" = "▶ Extracting: %{path}…\n"
+
+# === Job history ===
+"history.heading" = "History"
+"history.empty" = "No jobs completed yet."
+"history.chd_size" = "Size:"
+"history.open" = "Open"

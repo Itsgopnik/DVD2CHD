@@ -1,0 +1,201 @@
+# DVD2CHD
+
+A Rust tool for archiving optical media (DVDs and CDs) to compressed CHD (Compressed Hunks of Data) format, with a modern graphical interface.
+
+## Features
+
+- **Multi-profile support** — PS1, PS2, generic CD, and PC disc profiles
+- **Device archiving** — Direct ripping from optical drives (Linux)
+- **File conversion** — Convert existing ISO/CUE files to CHD
+- **Auto-detection** — Automatically detects media type and selects optimal settings
+- **Verification** — Built-in CHD integrity check after creation
+- **Hashing** — Optional MD5/SHA1 hash computation
+- **Process priority** — `nice` and `ionice` support to keep the system responsive
+- **Auto-install** — Missing tools can be installed via system package manager (Linux)
+- **Modern GUI** — egui-based interface with dark/light/high-contrast themes, animations, batch mode
+
+## System Requirements
+
+### Runtime Dependencies
+
+**Linux (primary platform):**
+
+| Tool | Required | Notes |
+|------|----------|-------|
+| `chdman` | Yes | From MAME tools — for CHD creation |
+| `cdrdao` | For CD ripping | Raw CD audio/data capture |
+| `ddrescue` | Optional | Better error recovery than the built-in reader |
+| `isoinfo` / `isosize` | Optional | More accurate disc size detection |
+
+> **Note:** `dd` has been replaced by a native Rust implementation — no external `dd` binary required.
+
+**Windows / macOS:**
+- `chdman` — required for CHD creation
+- Device ripping is Linux-only; file conversion works on all platforms
+
+### Build Dependencies
+
+- Rust 1.70+ (2021 edition)
+- Standard C build tools (`gcc` / `clang`, `pkg-config`) for native dependencies
+
+## Installation
+
+### From Source
+
+```bash
+git clone https://github.com/YOUR_USERNAME/dvd2chd.git
+cd dvd2chd
+
+cargo build --release
+
+# Binary: target/release/dvd2chd-gui
+```
+
+### Install Required Tools (Linux)
+
+**Debian / Ubuntu:**
+```bash
+sudo apt install mame-tools cdrdao gddrescue
+```
+
+**Arch Linux:**
+```bash
+sudo pacman -S cdrdao ddrescue
+# chdman: available via AUR (yay -S chdman) or set path manually in Options → Tools
+```
+
+**Fedora:**
+```bash
+sudo dnf install mame cdrdao ddrescue
+```
+
+**openSUSE:**
+```bash
+sudo zypper install mame cdrdao ddrescue
+```
+
+> The GUI can also install missing tools automatically via the **"⬇ Installieren"** button in the toolbar (uses `pkexec` for privilege escalation).
+
+## Usage
+
+```bash
+./target/release/dvd2chd-gui
+```
+
+### Quick Start
+
+1. Select a **source** (ISO/CUE file or optical drive)
+2. Choose an **output folder**
+3. Select a **profile** (Auto works for most discs)
+4. Click **▶ Start**
+
+### Keyboard Shortcuts
+
+| Shortcut | Action |
+|----------|--------|
+| `Ctrl+S` | Start job |
+| `Ctrl+O` | Open file |
+| `Ctrl+G` | Set device path |
+
+## Building
+
+```bash
+# Development build
+cargo build
+
+# Release build (optimized)
+cargo build --release
+
+# Tests
+cargo test --workspace
+
+# Linting
+cargo clippy --workspace
+```
+
+## Architecture
+
+Cargo workspace with two crates:
+
+```
+dvd2chd/
+├── dvd2chd-core/          # Core logic
+│   └── src/
+│       ├── lib.rs         # Public API, types, re-exports
+│       ├── util.rs        # sanitize_filename, unique_path, …
+│       ├── hash.rs        # MD5/SHA1 computation
+│       ├── verify.rs      # CHD verification
+│       └── linux/
+│           ├── mod.rs     # archive_device_linux, media detection
+│           ├── dvd.rs     # DVD ripping (native Rust reader + ddrescue)
+│           ├── cd.rs      # CD ripping via cdrdao, CUE handling
+│           └── chd.rs     # chdman invocation, priority wrapping
+└── dvd2chd-gui/           # egui/eframe GUI
+    └── src/
+        ├── main.rs
+        ├── drive.rs       # Drive enumeration (Linux/Windows/macOS)
+        ├── pkg_install.rs # System package manager auto-install
+        ├── tool_fetch.rs  # Binary download via manifest URL
+        └── app/           # GUI application (split into submodules)
+            ├── mod.rs     # App struct, update loop
+            ├── animation.rs
+            ├── draw_layout.rs / draw_toolbar.rs / draw_dialogs.rs
+            ├── job.rs / timeline.rs / workflow.rs
+            ├── tools_check.rs / source.rs / presets.rs / log.rs
+            └── state.rs
+```
+
+### Key Design Patterns
+
+- **`ProgressSink` trait** — unified progress reporting from core to GUI
+- **Cooperative cancellation** — `is_cancelled()` polling, no forceful kills
+- **Atomic writes** — `.part` files ensure crash-safe output
+- **`PhaseAnim` struct** — exponential-decay animation smoothing in the GUI
+
+## Profiles
+
+| Profile | Media | Tools |
+|---------|-------|-------|
+| **Auto** | Any | Detected via `udevadm` |
+| **PS1** | CD | `cdrdao` (raw) → `chdman createcd` |
+| **PS2** | DVD | native reader / `ddrescue` → `chdman createdvd` |
+| **Generic CD** | Data/Audio CD | `cdrdao` → `chdman createcd` |
+| **PC** | DVD/CD | native reader / `ddrescue` → `chdman` |
+
+## Troubleshooting
+
+**"chdman fehlt"** — Install `mame-tools` (apt) or set the binary path in Options → Tools.
+
+**"Permission denied on /dev/sr0"** — Add your user to the `cdrom` group:
+```bash
+sudo usermod -a -G cdrom $USER
+# Log out and back in
+```
+
+**CHD verification failed** — Source media may be damaged. Enable ddrescue + scrape pass in Options → Ripping for better recovery.
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/my-feature`)
+3. Run `cargo fmt && cargo clippy --workspace` before committing
+4. Open a Pull Request
+
+## Legal Notice
+
+This tool is intended for **personal archival of media you own**. Creating backup copies of optical discs for personal use is permitted in many jurisdictions (e.g. §53 UrhG in Germany), but laws vary by country — please verify the regulations applicable to you.
+
+**Important:** This tool does not circumvent copy protection. Discs with active DRM (e.g. CSS-encrypted DVDs) will produce encrypted output that cannot be used as a functional backup. Circumventing copy protection mechanisms may be illegal regardless of media ownership.
+
+The authors assume no liability for misuse of this software.
+
+## License
+
+MIT — see [LICENSE](LICENSE).
+
+## Acknowledgments
+
+- [MAME Project](https://www.mamedev.org) — `chdman`
+- [cdrdao](https://cdrdao.sourceforge.net) — CD ripping
+- [GNU ddrescue](https://www.gnu.org/software/ddrescue/) — data recovery
+- [egui](https://github.com/emilk/egui) — immediate mode GUI framework

@@ -1,0 +1,13 @@
+[Desktop Entry]
+Type=Application
+Name=DVD2CHD
+GenericName=Optical Disc Dumper
+Comment=Dump and convert optical media to CHD archives
+Exec=dvd2chd-gui
+TryExec=dvd2chd-gui
+Icon=dvd2chd
+Categories=AudioVideo;Utility;
+StartupNotify=true
+StartupWMClass=DVD2CHD (GUI)
+Keywords=DVD;CD;CHD;Archive;Backup;
+Terminal=false
