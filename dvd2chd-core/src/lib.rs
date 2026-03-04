@@ -586,7 +586,7 @@ mod tests {
         };
         let json = serde_json::to_string(&opts).expect("serialize");
         let decoded: ArchiveOptions = serde_json::from_str(&json).expect("deserialize");
-        assert_eq!(decoded.use_ddrescue, true);
+        assert!(decoded.use_ddrescue);
         assert_eq!(decoded.extra_chd_args, "-c zstd");
     }
 
@@ -606,7 +606,7 @@ mod tests {
         let json = serde_json::to_string(&opts).expect("serialize");
         let decoded: FileOptions = serde_json::from_str(&json).expect("deserialize");
         assert_eq!(decoded.force_createdvd, Some(true));
-        assert_eq!(decoded.run_ionice, true);
+        assert!(decoded.run_ionice);
     }
 
     #[test]
