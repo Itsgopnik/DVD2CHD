@@ -1,5 +1,7 @@
 # DVD2CHD
 
+[![CI](https://github.com/Itsgopnik/dvd2chd/actions/workflows/ci.yml/badge.svg)](https://github.com/Itsgopnik/dvd2chd/actions/workflows/ci.yml)
+
 A Rust tool for archiving optical media (DVDs and CDs) to compressed CHD (Compressed Hunks of Data) format, with a modern graphical interface.
 
 ## Features
@@ -43,7 +45,7 @@ A Rust tool for archiving optical media (DVDs and CDs) to compressed CHD (Compre
 ### From Source
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/dvd2chd.git
+git clone https://github.com/Itsgopnik/dvd2chd.git
 cd dvd2chd
 
 cargo build --release
