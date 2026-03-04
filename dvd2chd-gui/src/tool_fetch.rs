@@ -71,9 +71,8 @@ pub fn install_tool(tool: &RemoteTool, dest_dir: &Path) -> Result<PathBuf> {
     let dest_path = dest_dir.join(&file_name);
 
     if dest_path.exists() {
-        fs::remove_file(&dest_path).with_context(|| {
-            format!("Cannot remove existing file: {}", dest_path.display())
-        })?;
+        fs::remove_file(&dest_path)
+            .with_context(|| format!("Cannot remove existing file: {}", dest_path.display()))?;
     }
 
     let mut tmp = NamedTempFile::new_in(dest_dir)?;
@@ -151,7 +150,8 @@ pub fn download_chdman(manifest_url: &str, dest_dir: &Path) -> Result<PathBuf> {
 }
 
 fn sha256_file(path: &Path) -> Result<String> {
-    let mut file = fs::File::open(path).with_context(|| format!("Cannot open {}", path.display()))?;
+    let mut file =
+        fs::File::open(path).with_context(|| format!("Cannot open {}", path.display()))?;
     let mut hasher = Sha256::new();
     let mut buf = [0u8; 65536];
     loop {

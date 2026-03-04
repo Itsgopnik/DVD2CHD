@@ -1,5 +1,5 @@
-use super::{card, open_folder, App, Breakpoint, breakpoint};
 use super::state::Preset;
+use super::{breakpoint, card, open_folder, App, Breakpoint};
 use dvd2chd_core::Profile;
 use egui::{Color32, RichText, Rounding, Stroke};
 use rust_i18n::t;
@@ -10,10 +10,7 @@ impl App {
         // --- Quelle ---
         card(ui, t!("panel.source").as_ref(), |ui| {
             ui.horizontal(|ui| {
-                if ui
-                    .button(t!("source.choose_file").as_ref())
-                    .clicked()
-                {
+                if ui.button(t!("source.choose_file").as_ref()).clicked() {
                     if let Some(p) = rfd::FileDialog::new()
                         .add_filter("ISO/CUE", &["iso", "cue"])
                         .pick_file()
@@ -55,10 +52,7 @@ impl App {
                 {
                     self.do_manual_eject();
                 }
-                if ui
-                    .button(t!("source.detect_drive").as_ref())
-                    .clicked()
-                {
+                if ui.button(t!("source.detect_drive").as_ref()).clicked() {
                     self.detected_drives = crate::drive::probe_drives();
                     match self.detected_drives.len() {
                         0 => self.log_line(&t!("log.no_drive")),
@@ -67,7 +61,11 @@ impl App {
                             self.set_device_path(drive.path.clone(), None);
                             let label = self.drive_label(&drive);
                             let path_display = drive.path.display().to_string();
-                            self.log_line(&t!("log.drive_detected", path = path_display, label = label));
+                            self.log_line(&t!(
+                                "log.drive_detected",
+                                path = path_display,
+                                label = label
+                            ));
                         }
                         _ => {
                             self.selected_drive = Some(0);
@@ -105,10 +103,7 @@ impl App {
         // --- Ziel ---
         card(ui, t!("panel.target").as_ref(), |ui| {
             ui.horizontal(|ui| {
-                if ui
-                    .button(t!("target.set_folder").as_ref())
-                    .clicked()
-                {
+                if ui.button(t!("target.set_folder").as_ref()).clicked() {
                     if let Some(p) = rfd::FileDialog::new().pick_folder() {
                         self.s.out_dir = Some(p);
                     }
@@ -197,7 +192,10 @@ impl App {
                         ui.checkbox(&mut self.s.compute_sha256, "SHA-256");
                     });
                     ui.horizontal(|ui| {
-                        ui.checkbox(&mut self.s.notify_on_done, t!("chd.notify_on_done").as_ref());
+                        ui.checkbox(
+                            &mut self.s.notify_on_done,
+                            t!("chd.notify_on_done").as_ref(),
+                        );
                     });
                     ui.horizontal(|ui| {
                         let rename_id_text = t!("chd.rename_by_id");
@@ -268,19 +266,13 @@ impl App {
                     });
 
                     ui.add_space(6.0);
-                    if ui
-                        .button(t!("tools.refresh").as_ref())
-                        .clicked()
-                    {
+                    if ui.button(t!("tools.refresh").as_ref()).clicked() {
                         self.reprobe_tools();
                     }
 
                     ui.separator();
                     ui.horizontal(|ui| {
-                        if ui
-                            .button(t!("tools.open_folder").as_ref())
-                            .clicked()
-                        {
+                        if ui.button(t!("tools.open_folder").as_ref()).clicked() {
                             let dir = self.tool_install_dir();
                             if let Err(e) = open_folder(&dir) {
                                 self.log_line(&t!("log.cannot_open_folder", err = e.to_string()));
@@ -440,12 +432,12 @@ impl App {
                     breakpoint(ui.ctx()),
                     Breakpoint::Narrow | Breakpoint::Medium
                 );
-                let start_text = if compact { "▶".to_string() } else { t!("toolbar.start").to_string() };
-                let start_btn = egui::Button::new(
-                    RichText::new(start_text)
-                    .strong(),
-                )
-                .fill(
+                let start_text = if compact {
+                    "▶".to_string()
+                } else {
+                    t!("toolbar.start").to_string()
+                };
+                let start_btn = egui::Button::new(RichText::new(start_text).strong()).fill(
                     Color32::from_rgb(50, 90, 180).linear_multiply(if can_start {
                         0.6
                     } else {
@@ -457,7 +449,11 @@ impl App {
                     self.start_job();
                 }
                 if let Some(dir) = &self.s.out_dir {
-                    let open_text = if compact { "📂".to_string() } else { t!("quickstart.open_output").to_string() };
+                    let open_text = if compact {
+                        "📂".to_string()
+                    } else {
+                        t!("quickstart.open_output").to_string()
+                    };
                     if ui.button(open_text).clicked() {
                         let _ = open_folder(dir);
                     }
@@ -547,10 +543,7 @@ impl App {
                 ui.text_edit_singleline(&mut self.preset_name);
             });
             let preset_name_empty = self.preset_name.trim().is_empty();
-            if ui
-                .button(t!("presets.save").as_ref())
-                .clicked()
-            {
+            if ui.button(t!("presets.save").as_ref()).clicked() {
                 let name = self.preset_name.trim();
                 if name.is_empty() {
                     self.log_line(&t!("log.preset_name_required"));
@@ -591,10 +584,7 @@ impl App {
     pub(super) fn draw_batch_card(&mut self, ui: &mut egui::Ui) {
         card(ui, t!("panel.batch").as_ref(), |ui| {
             ui.horizontal(|ui| {
-                if ui
-                    .button(t!("batch.add_files").as_ref())
-                    .clicked()
-                {
+                if ui.button(t!("batch.add_files").as_ref()).clicked() {
                     if let Some(files) = rfd::FileDialog::new()
                         .add_filter("ISO/CUE", &["iso", "cue"])
                         .set_title(t!("batch.title").as_ref())
@@ -671,9 +661,8 @@ impl App {
                     ui.horizontal(|ui| {
                         // Timestamp
                         let time_str = {
-                            let duration = ts
-                                .duration_since(std::time::UNIX_EPOCH)
-                                .unwrap_or_default();
+                            let duration =
+                                ts.duration_since(std::time::UNIX_EPOCH).unwrap_or_default();
                             let secs = duration.as_secs();
                             let h = (secs / 3600) % 24;
                             let m = (secs / 60) % 60;
@@ -789,10 +778,7 @@ impl App {
                 && self.tools.chdman.is_some()
                 && !self.running;
             if ui
-                .add_enabled(
-                    can_extract,
-                    egui::Button::new(t!("extract.start").as_ref()),
-                )
+                .add_enabled(can_extract, egui::Button::new(t!("extract.start").as_ref()))
                 .clicked()
             {
                 self.start_extract_job();
@@ -802,47 +788,47 @@ impl App {
 
     pub(super) fn draw_dropzone_card(&mut self, ui: &mut egui::Ui) {
         card(ui, t!("panel.dropzone").as_ref(), |ui| {
-                use egui::{CursorIcon, Sense};
-                let size = egui::vec2(ui.available_width(), 160.0);
+            use egui::{CursorIcon, Sense};
+            let size = egui::vec2(ui.available_width(), 160.0);
 
-                let (response, painter) = ui.allocate_painter(size, Sense::click());
-                let visuals = ui.visuals().clone();
-                let rect = response.rect;
+            let (response, painter) = ui.allocate_painter(size, Sense::click());
+            let visuals = ui.visuals().clone();
+            let rect = response.rect;
 
-                let hovering_file = ui.ctx().input(|i| !i.raw.hovered_files.is_empty());
-                let stroke_col = visuals.widgets.inactive.fg_stroke.color;
-                let stroke_w = if hovering_file || response.hovered() {
-                    2.5
-                } else {
-                    1.0
-                };
+            let hovering_file = ui.ctx().input(|i| !i.raw.hovered_files.is_empty());
+            let stroke_col = visuals.widgets.inactive.fg_stroke.color;
+            let stroke_w = if hovering_file || response.hovered() {
+                2.5
+            } else {
+                1.0
+            };
 
-                painter.rect(
-                    rect.shrink(8.0),
-                    Rounding::same(12.0),
-                    visuals.extreme_bg_color,
-                    Stroke::new(stroke_w, stroke_col),
-                );
+            painter.rect(
+                rect.shrink(8.0),
+                Rounding::same(12.0),
+                visuals.extreme_bg_color,
+                Stroke::new(stroke_w, stroke_col),
+            );
 
-                painter.text(
-                    rect.center(),
-                    egui::Align2::CENTER_CENTER,
-                    t!("dropzone.hint").as_ref(),
-                    egui::TextStyle::Body.resolve(ui.style()),
-                    visuals.text_color(),
-                );
+            painter.text(
+                rect.center(),
+                egui::Align2::CENTER_CENTER,
+                t!("dropzone.hint").as_ref(),
+                egui::TextStyle::Body.resolve(ui.style()),
+                visuals.text_color(),
+            );
 
-                if response.hovered() {
-                    ui.ctx().set_cursor_icon(CursorIcon::PointingHand);
+            if response.hovered() {
+                ui.ctx().set_cursor_icon(CursorIcon::PointingHand);
+            }
+            if response.clicked() {
+                if let Some(p) = rfd::FileDialog::new()
+                    .add_filter("ISO/CUE", &["iso", "cue"])
+                    .pick_file()
+                {
+                    self.set_source_file(p, Some(t!("log.file_selected").to_string()));
                 }
-                if response.clicked() {
-                    if let Some(p) = rfd::FileDialog::new()
-                        .add_filter("ISO/CUE", &["iso", "cue"])
-                        .pick_file()
-                    {
-                        self.set_source_file(p, Some(t!("log.file_selected").to_string()));
-                    }
-                }
-            });
+            }
+        });
     }
 }

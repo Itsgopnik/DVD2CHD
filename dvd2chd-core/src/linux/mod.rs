@@ -172,8 +172,14 @@ pub fn archive_device_linux(
         if opts.compute_md5 || opts.compute_sha1 || opts.compute_sha256 {
             sink.stage(StageEvent::HashStarted);
             // Log hashes via helper. Any error bubbles up as CoreError::Any.
-            log_hashes(&chd, opts.compute_md5, opts.compute_sha1, opts.compute_sha256, &sink)
-                .map_err(CoreError::Any)?;
+            log_hashes(
+                &chd,
+                opts.compute_md5,
+                opts.compute_sha1,
+                opts.compute_sha256,
+                &sink,
+            )
+            .map_err(CoreError::Any)?;
             sink.stage(StageEvent::HashFinished);
             sink.percent(DEVICE_PROGRESS_HASH.end);
         }
@@ -208,8 +214,7 @@ pub fn archive_device_linux(
         },
         // CDs (PS1 / Generic / PC-CD)
         MediaKind::Cd => {
-            ensure_tool(&cdrdao, &["--version"])
-                .map_err(|_| CoreError::MissingTool("cdrdao"))?;
+            ensure_tool(&cdrdao, &["--version"]).map_err(|_| CoreError::MissingTool("cdrdao"))?;
             sink.stage(StageEvent::RipStarted);
             let (bin, toc) = rip_cd_raw(
                 &cdrdao,
@@ -244,8 +249,14 @@ pub fn archive_device_linux(
             }
             if opts.compute_md5 || opts.compute_sha1 || opts.compute_sha256 {
                 sink.stage(StageEvent::HashStarted);
-                log_hashes(&chd, opts.compute_md5, opts.compute_sha1, opts.compute_sha256, &sink)
-                    .map_err(CoreError::Any)?;
+                log_hashes(
+                    &chd,
+                    opts.compute_md5,
+                    opts.compute_sha1,
+                    opts.compute_sha256,
+                    &sink,
+                )
+                .map_err(CoreError::Any)?;
                 sink.stage(StageEvent::HashFinished);
                 sink.percent(DEVICE_PROGRESS_HASH.end);
             }
@@ -332,7 +343,10 @@ fn eject_drive(dev: &Path, sink: &Arc<dyn ProgressSink>) {
         .unwrap_or(false);
 
     if udisks_ok {
-        sink.log(&format!("💿 Laufwerk ausgeworfen (udisksctl): {}", dev.display()));
+        sink.log(&format!(
+            "💿 Laufwerk ausgeworfen (udisksctl): {}",
+            dev.display()
+        ));
         return;
     }
 
@@ -351,7 +365,8 @@ fn eject_drive(dev: &Path, sink: &Arc<dyn ProgressSink>) {
         Err(e) => {
             sink.log(&format!(
                 "⚠ Auswerfen fehlgeschlagen ({}): {}",
-                e, dev.display()
+                e,
+                dev.display()
             ));
         }
     }

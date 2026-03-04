@@ -8,8 +8,8 @@ use std::{
     sync::Arc,
 };
 
-use crate::{CoreError, CoreResult, ProgressSink};
 use crate::util::{ensure_tool, unique_path};
+use crate::{CoreError, CoreResult, ProgressSink};
 
 pub(super) fn rip_cd_raw(
     cdrdao: &Path,

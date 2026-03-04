@@ -8,5 +8,3 @@ pub mod tool_fetch;
 fn main() {
     app::run();
 }
-
-

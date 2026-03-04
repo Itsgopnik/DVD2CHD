@@ -1,5 +1,5 @@
-use super::App;
 use super::state::{Settings, UiPreferences};
+use super::App;
 use rust_i18n::t;
 
 impl App {

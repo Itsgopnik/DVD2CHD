@@ -9,9 +9,9 @@ use std::{
     time::{Duration, Instant},
 };
 
-use crate::{CoreError, CoreResult, ProgressSink};
-use crate::util::{ensure_tool, wait_with_cancel};
 use super::{ProgressRange, DEVICE_PROGRESS_RIP};
+use crate::util::{ensure_tool, wait_with_cancel};
+use crate::{CoreError, CoreResult, ProgressSink};
 
 pub(super) fn rip_dvd(
     ddrescue: &Path,
@@ -24,8 +24,7 @@ pub(super) fn rip_dvd(
     let total = disc_logical_size_bytes(dev);
 
     if use_ddrescue {
-        ensure_tool(ddrescue, &["--version"])
-            .map_err(|_| CoreError::MissingTool("ddrescue"))?;
+        ensure_tool(ddrescue, &["--version"]).map_err(|_| CoreError::MissingTool("ddrescue"))?;
         run_ddrescue(ddrescue, dev, iso, total, false, sink.clone())?;
         if scrape {
             sink.log("🩹 ddrescue: Recovery pass (-r3)…");
@@ -170,7 +169,11 @@ pub(super) fn run_dd(
                     String::new()
                 };
                 sink.percent(global);
-                sink.label(&format!("{:.0}% • {:.1} MB/s{eta}", global * 100.0, avg_mbps));
+                sink.label(&format!(
+                    "{:.0}% • {:.1} MB/s{eta}",
+                    global * 100.0,
+                    avg_mbps
+                ));
             } else {
                 sink.label(&format!(
                     "{:.0} MiB written • {:.1} MB/s",
@@ -216,17 +219,9 @@ pub(super) fn disc_logical_size_bytes(dev: &Path) -> Option<u64> {
             let mut block_size: u64 = 2048u64;
             for line in txt.lines() {
                 if let Some(v) = line.strip_prefix("Volume size is:") {
-                    blocks = v
-                        .split_whitespace()
-                        .next()
-                        .and_then(|n| n.parse().ok());
+                    blocks = v.split_whitespace().next().and_then(|n| n.parse().ok());
                 } else if let Some(v) = line.strip_prefix("Logical block size is:") {
-                    if let Ok(sz) = v
-                        .split_whitespace()
-                        .next()
-                        .unwrap_or("2048")
-                        .parse::<u64>()
-                    {
+                    if let Ok(sz) = v.split_whitespace().next().unwrap_or("2048").parse::<u64>() {
                         block_size = sz.max(1);
                     }
                 }

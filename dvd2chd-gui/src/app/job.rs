@@ -207,7 +207,10 @@ impl App {
             self.append_log_text("---\n");
         }
 
-        self.log_line(&t!("log.extract_start", path = in_path.display().to_string()));
+        self.log_line(&t!(
+            "log.extract_start",
+            path = in_path.display().to_string()
+        ));
 
         #[cfg(debug_assertions)]
         {
@@ -225,13 +228,20 @@ impl App {
             run_ionice: self.s.run_ionice,
             chdman_path: self.s.chdman_path.clone(),
         };
-        let mode = Mode::Extract { in_path, out_dir, opts };
+        let mode = Mode::Extract {
+            in_path,
+            out_dir,
+            opts,
+        };
         let _ = spawn_core_job(mode, tx, cancel);
     }
 
     pub(super) fn enqueue_batch_file(&mut self, path: PathBuf) {
         if self.batch_queue.iter().any(|p| p == &path) {
-            self.log_line(&t!("log.batch_duplicate", path = path.display().to_string()));
+            self.log_line(&t!(
+                "log.batch_duplicate",
+                path = path.display().to_string()
+            ));
             return;
         }
         self.log_line(&t!("log.batch_added", path = path.display().to_string()));

@@ -9,7 +9,11 @@ pub struct JobStage {
 
 impl JobStage {
     pub fn new(kind: JobStageKind, label_key: &'static str, state: StageState) -> Self {
-        Self { kind, label_key, state }
+        Self {
+            kind,
+            label_key,
+            state,
+        }
     }
 
     pub fn label(&self) -> String {

@@ -125,10 +125,7 @@ impl PackageManager {
             if code == 126 || code == 127 {
                 Err("Authentication cancelled or pkexec unavailable.".to_string())
             } else {
-                Err(format!(
-                    "{} exited with code {code}",
-                    self.display_name()
-                ))
+                Err(format!("{} exited with code {code}", self.display_name()))
             }
         }
     }

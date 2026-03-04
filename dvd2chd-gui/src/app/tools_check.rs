@@ -123,8 +123,8 @@ impl App {
         self.chdman_dl_rx = Some(rx);
         self.chdman_dl_running = true;
         std::thread::spawn(move || {
-            let result = crate::tool_fetch::download_chdman(&url, &dest_dir)
-                .map_err(|e| e.to_string());
+            let result =
+                crate::tool_fetch::download_chdman(&url, &dest_dir).map_err(|e| e.to_string());
             let _ = tx.send(result);
         });
     }

@@ -85,7 +85,9 @@ impl App {
     }
 
     pub(super) fn drive_label(&self, drive: &Drive) -> String {
-        drive.short_label().unwrap_or_else(|| t!("drive.unknown").to_string())
+        drive
+            .short_label()
+            .unwrap_or_else(|| t!("drive.unknown").to_string())
     }
 
     pub(super) fn drive_display_label(&self, drive: &Drive) -> String {

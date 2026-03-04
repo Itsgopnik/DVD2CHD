@@ -1,11 +1,11 @@
 //! DVD2CHD GUI – responsive (seamless), with drive detection
 
-use rust_i18n::t;
 use eframe::{egui, NativeOptions};
 use egui::{
-    Align, CentralPanel, Color32, Frame, Layout, Margin, RichText, Rounding, SidePanel,
-    Stroke, TopBottomPanel,
+    Align, CentralPanel, Color32, Frame, Layout, Margin, RichText, Rounding, SidePanel, Stroke,
+    TopBottomPanel,
 };
+use rust_i18n::t;
 use std::{
     collections::VecDeque,
     path::{Path, PathBuf},
@@ -23,20 +23,20 @@ mod animation;
 mod state;
 mod workflow;
 
-mod log;
-mod source;
-mod tools_check;
-mod job;
-mod timeline;
-mod presets;
+mod draw_dialogs;
 mod draw_layout;
 mod draw_toolbar;
-mod draw_dialogs;
+mod job;
+mod log;
+mod presets;
+mod source;
+mod timeline;
+mod tools_check;
 
 use self::animation::{AnimationState, StageActivity};
+use self::log::LogEntry;
 use self::state::{Language, PresetStore, Settings, Theme, UiPreferences};
 use self::workflow::{JobStage, JobStageKind, StageState};
-use self::log::LogEntry;
 
 const LOG_ICON_BYTES: &[u8] = include_bytes!("../../assets/log_icon_32.png");
 
@@ -133,7 +133,6 @@ fn bundled_tool_path(tool_name: &str) -> Option<PathBuf> {
     }
     None
 }
-
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 enum Breakpoint {
@@ -450,7 +449,11 @@ impl eframe::App for App {
                             self.log_line(&t!("log.job_done", path = p.display().to_string()));
                             // Record job history entry
                             let chd_size = p.metadata().map(|m| m.len()).unwrap_or(0);
-                            self.job_history.push((std::time::SystemTime::now(), p.clone(), chd_size));
+                            self.job_history.push((
+                                std::time::SystemTime::now(),
+                                p.clone(),
+                                chd_size,
+                            ));
                             // System notification
                             if self.s.notify_on_done {
                                 let name = p
@@ -467,8 +470,7 @@ impl eframe::App for App {
                             }
                             self.mark_all_stages_done();
                             self.progress_hide_at = Some(
-                                std::time::Instant::now()
-                                    + std::time::Duration::from_secs(30),
+                                std::time::Instant::now() + std::time::Duration::from_secs(30),
                             );
                         }
                         Err(e) => {
@@ -511,10 +513,7 @@ impl eframe::App for App {
         }
 
         // Poll chdman binary download result
-        let dl_result = self
-            .chdman_dl_rx
-            .as_ref()
-            .and_then(|rx| rx.try_recv().ok());
+        let dl_result = self.chdman_dl_rx.as_ref().and_then(|rx| rx.try_recv().ok());
         if let Some(result) = dl_result {
             self.chdman_dl_running = false;
             self.chdman_dl_rx = None;
@@ -619,7 +618,11 @@ impl eframe::App for App {
                 .show(ctx, |ui| {
                     let accent = Color32::from_rgb(130, 170, 255);
                     ui.horizontal(|ui| {
-                        ui.heading(RichText::new(t!("log.heading").as_ref()).color(accent).strong());
+                        ui.heading(
+                            RichText::new(t!("log.heading").as_ref())
+                                .color(accent)
+                                .strong(),
+                        );
                         ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
                             if ui.button(t!("log.save").as_ref()).clicked() {
                                 if let Some(path) = rfd::FileDialog::new()
@@ -669,10 +672,7 @@ impl eframe::App for App {
                 if ok {
                     if first_drop {
                         first_drop = false;
-                        self.set_source_file(
-                            p.clone(),
-                            Some(t!("log.drop_accepted").to_string()),
-                        );
+                        self.set_source_file(p.clone(), Some(t!("log.drop_accepted").to_string()));
                         if total_dropped > 1 {
                             self.log_line(&t!("log.drop_batch_added"));
                         }

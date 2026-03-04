@@ -57,10 +57,15 @@ impl PhaseAnim {
 
         let target_phase = (self.phase + self.offset).rem_euclid(1.0);
         let prev = self.phase_smooth;
-        self.phase_smooth =
-            lerp_phase(self.phase_smooth, target_phase, 1.0 - (-delta * smooth_k).exp());
+        self.phase_smooth = lerp_phase(
+            self.phase_smooth,
+            target_phase,
+            1.0 - (-delta * smooth_k).exp(),
+        );
 
-        self.drive > EPS || self.velocity.abs() > EPS || phase_distance(prev, self.phase_smooth) > EPS
+        self.drive > EPS
+            || self.velocity.abs() > EPS
+            || phase_distance(prev, self.phase_smooth) > EPS
     }
 
     /// Immediately snap to the settled state (for reduce-motion mode).
@@ -226,8 +231,11 @@ impl AnimationState {
 
         // Spinner — kept as a separate angle accumulator rather than a phase
         let spinner_drive = blend_activity(&mut self.spinner_drive, any_active, delta, 6.0);
-        self.spinner_velocity =
-            lerp_f32(self.spinner_velocity, spinner_drive, 1.0 - (-delta * 9.0_f32).exp());
+        self.spinner_velocity = lerp_f32(
+            self.spinner_velocity,
+            spinner_drive,
+            1.0 - (-delta * 9.0_f32).exp(),
+        );
         const EPS: f32 = 0.0005;
         if spinner_drive > EPS || self.spinner_velocity.abs() > EPS {
             self.spinner_angle =
@@ -450,8 +458,7 @@ impl AnimationState {
         let cycle = self.compress.phase_smooth;
 
         // ── Panel ────────────────────────────────────────────────────────────
-        let panel =
-            egui::Rect::from_center_size(center, egui::vec2(radius * 1.88, radius * 1.32));
+        let panel = egui::Rect::from_center_size(center, egui::vec2(radius * 1.88, radius * 1.32));
         painter.rect(
             panel,
             egui::Rounding::same(radius * 0.13),
@@ -462,7 +469,7 @@ impl AnimationState {
         let inner = panel.shrink(margin);
 
         // ── Layout constants ─────────────────────────────────────────────────
-        let belt_y = center.y + radius * 0.14;   // top surface of conveyor belt
+        let belt_y = center.y + radius * 0.14; // top surface of conveyor belt
         let press_cx = center.x - radius * 0.08; // x-center of the press
         let pkt_w = radius * 0.38;
         let pkt_h = radius * 0.26;
@@ -475,7 +482,7 @@ impl AnimationState {
         let press_platen_w = pkt_w * 1.32;
         let press_platen_h = radius * 0.062;
         let platen_up_y = inner.top() + press_platen_h + radius * 0.02; // bottom of platen when UP
-        let platen_dn_y = belt_y - pkt_h * 0.11;                        // bottom of platen when DOWN
+        let platen_dn_y = belt_y - pkt_h * 0.11; // bottom of platen when DOWN
 
         // ── press_t: 0 = fully up, 1 = fully down ────────────────────────────
         let press_t: f32 = if cycle < 0.38 {
@@ -509,7 +516,10 @@ impl AnimationState {
                     let ly = rect.top() + rect.height() * (li as f32 + 1.0) / 4.0;
                     let lm = rect.width() * 0.14;
                     painter.line_segment(
-                        [Pos2::new(rect.left() + lm, ly), Pos2::new(rect.right() - lm, ly)],
+                        [
+                            Pos2::new(rect.left() + lm, ly),
+                            Pos2::new(rect.right() - lm, ly),
+                        ],
                         Stroke::new(radius * 0.007, mul(accent, alpha * 0.25)),
                     );
                 }
@@ -521,7 +531,10 @@ impl AnimationState {
         let belt_right = press_cx + pkt_w * 0.5 + radius * 0.06;
         for dy in [-radius * 0.011, radius * 0.011] {
             painter.line_segment(
-                [Pos2::new(belt_left, belt_y + dy), Pos2::new(belt_right, belt_y + dy)],
+                [
+                    Pos2::new(belt_left, belt_y + dy),
+                    Pos2::new(belt_right, belt_y + dy),
+                ],
                 Stroke::new(radius * 0.013, mul(accent, 0.52)),
             );
         }
@@ -588,7 +601,11 @@ impl AnimationState {
             // Falling into container
             let fall_t = (cycle - 0.93) / 0.07;
             let dest_cx = (container_left + container_right) * 0.5;
-            let y_top = lerp_f32(belt_y - cur_pkt_h, container_bottom - cur_pkt_h, ease_in_out_smooth(fall_t));
+            let y_top = lerp_f32(
+                belt_y - cur_pkt_h,
+                container_bottom - cur_pkt_h,
+                ease_in_out_smooth(fall_t),
+            );
             draw_pkt(
                 egui::Rect::from_min_max(
                     Pos2::new(dest_cx - cur_pkt_w * 0.5, y_top),
@@ -609,16 +626,25 @@ impl AnimationState {
         );
         // Platen
         let platen = egui::Rect::from_min_max(
-            Pos2::new(press_cx - press_platen_w * 0.5, platen_bottom_y - press_platen_h),
+            Pos2::new(
+                press_cx - press_platen_w * 0.5,
+                platen_bottom_y - press_platen_h,
+            ),
             Pos2::new(press_cx + press_platen_w * 0.5, platen_bottom_y),
         );
-        painter.rect_filled(platen, egui::Rounding::same(radius * 0.022), mul(accent, 0.82));
+        painter.rect_filled(
+            platen,
+            egui::Rounding::same(radius * 0.022),
+            mul(accent, 0.82),
+        );
         // Ridges on press face (shows it's a pressing surface)
         for ri in 0..4_usize {
-            let rx =
-                platen.left() + (ri as f32 + 0.5) * platen.width() / 4.0;
+            let rx = platen.left() + (ri as f32 + 0.5) * platen.width() / 4.0;
             painter.line_segment(
-                [Pos2::new(rx, platen.bottom() - press_platen_h * 0.35), Pos2::new(rx, platen.bottom())],
+                [
+                    Pos2::new(rx, platen.bottom() - press_platen_h * 0.35),
+                    Pos2::new(rx, platen.bottom()),
+                ],
                 Stroke::new(radius * 0.014, mul(accent, 0.42)),
             );
         }
@@ -635,15 +661,24 @@ impl AnimationState {
         // ── Container (open-top box) ──────────────────────────────────────────
         let wall_s = Stroke::new(radius * 0.022, mul(accent, 0.80));
         painter.line_segment(
-            [Pos2::new(container_left, belt_y), Pos2::new(container_left, container_bottom)],
+            [
+                Pos2::new(container_left, belt_y),
+                Pos2::new(container_left, container_bottom),
+            ],
             wall_s,
         );
         painter.line_segment(
-            [Pos2::new(container_right, belt_y), Pos2::new(container_right, container_bottom)],
+            [
+                Pos2::new(container_right, belt_y),
+                Pos2::new(container_right, container_bottom),
+            ],
             wall_s,
         );
         painter.line_segment(
-            [Pos2::new(container_left, container_bottom), Pos2::new(container_right, container_bottom)],
+            [
+                Pos2::new(container_left, container_bottom),
+                Pos2::new(container_right, container_bottom),
+            ],
             wall_s,
         );
 
@@ -654,10 +689,7 @@ impl AnimationState {
         let s_h = ((container_bottom - belt_y) * 0.13).max(2.0_f32);
         let s_gap = (s_h * 0.38).max(1.0_f32);
         for i in 0..n_slices {
-            let sy = container_bottom
-                - radius * 0.028
-                - i as f32 * (s_h + s_gap)
-                - s_h * 0.5;
+            let sy = container_bottom - radius * 0.028 - i as f32 * (s_h + s_gap) - s_h * 0.5;
             if sy > belt_y {
                 painter.rect_filled(
                     egui::Rect::from_center_size(
@@ -679,8 +711,7 @@ impl AnimationState {
         accent: Color32,
         visuals: &Visuals,
     ) {
-        let doc_rect =
-            egui::Rect::from_center_size(center, egui::vec2(radius * 1.2, radius * 1.4));
+        let doc_rect = egui::Rect::from_center_size(center, egui::vec2(radius * 1.2, radius * 1.4));
         painter.rect(
             doc_rect,
             egui::Rounding::same(radius * 0.12),

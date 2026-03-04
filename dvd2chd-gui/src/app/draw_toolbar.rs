@@ -1,10 +1,8 @@
-use super::{breakpoint, my_big_shadow, my_small_shadow, palette_for_theme, App, Breakpoint};
 use super::state::{Language, Theme};
 use super::workflow::JobStageKind;
+use super::{breakpoint, my_big_shadow, my_small_shadow, palette_for_theme, App, Breakpoint};
 use dark_light::{self, Mode as SystemMode};
-use egui::{
-    Color32, FontId, Frame, Margin, RichText, Rounding, Stroke, TopBottomPanel, Visuals,
-};
+use egui::{Color32, FontId, Frame, Margin, RichText, Rounding, Stroke, TopBottomPanel, Visuals};
 use rust_i18n::t;
 
 impl App {
@@ -314,8 +312,7 @@ impl App {
                             }
                             if !self.log_open && !self.log.is_empty() {
                                 let painter = ui.painter();
-                                let dot_center =
-                                    response.rect.right_top() - egui::vec2(6.0, -6.0);
+                                let dot_center = response.rect.right_top() - egui::vec2(6.0, -6.0);
                                 painter.circle_filled(
                                     dot_center,
                                     4.0,
@@ -327,10 +324,7 @@ impl App {
                             if ui
                                 .add(
                                     egui::Button::new(RichText::new(log_label).size(16.0))
-                                        .min_size(egui::vec2(
-                                            if compact { 44.0 } else { 80.0 },
-                                            H,
-                                        ))
+                                        .min_size(egui::vec2(if compact { 44.0 } else { 80.0 }, H))
                                         .frame(false),
                                 )
                                 .on_hover_text(log_hover_text.as_ref())
@@ -339,7 +333,6 @@ impl App {
                                 self.log_open = !self.log_open;
                             }
                         }
-
                     });
                 });
 

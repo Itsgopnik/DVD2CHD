@@ -6,8 +6,8 @@ use std::{
     sync::Arc,
 };
 
-use crate::{CoreError, CoreResult, ProgressSink, StageEvent, CHDMAN_PERCENT_FLOAT_RE};
 use crate::util::wait_with_cancel;
+use crate::{CoreError, CoreResult, ProgressSink, StageEvent, CHDMAN_PERCENT_FLOAT_RE};
 
 pub(crate) fn run_verify(chdman: &Path, chd: &Path, sink: Arc<dyn ProgressSink>) -> CoreResult<()> {
     sink.label("Verification…");

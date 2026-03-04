@@ -7,11 +7,11 @@ use std::{
     sync::Arc,
 };
 
-use crate::{CoreError, CoreResult, ProgressSink, StageEvent, CHDMAN_PERCENT_RE};
+use super::cd::{ensure_cue_from_toc, make_cue_paths_relative};
+use super::{DEVICE_PROGRESS_CHD, DEVICE_PROGRESS_VERIFY};
 use crate::util::wait_with_cancel;
 use crate::verify::run_verify;
-use super::{DEVICE_PROGRESS_CHD, DEVICE_PROGRESS_VERIFY};
-use super::cd::{ensure_cue_from_toc, make_cue_paths_relative};
+use crate::{CoreError, CoreResult, ProgressSink, StageEvent, CHDMAN_PERCENT_RE};
 
 pub(super) fn chd_dvd_atomic(
     chdman: &Path,

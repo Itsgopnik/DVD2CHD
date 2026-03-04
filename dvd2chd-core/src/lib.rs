@@ -61,9 +61,7 @@ pub trait ProgressSink: Send + Sync {
     fn is_cancelled(&self) -> bool;
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-#[derive(Default)]
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Default, serde::Serialize, serde::Deserialize)]
 pub enum Profile {
     #[default]
     Auto,
@@ -379,11 +377,7 @@ fn run_extract(
     ));
 
     let mut base = Command::new(chdman);
-    base.arg(subcmd)
-        .arg("-i")
-        .arg(input)
-        .arg("-o")
-        .arg(output);
+    base.arg(subcmd).arg("-i").arg(input).arg("-o").arg(output);
     let mut cmd = wrap_priority(base, opts.run_nice, opts.run_ionice);
     cmd.stdout(Stdio::piped()).stderr(Stdio::piped());
 
@@ -430,7 +424,9 @@ fn run_extract(
     }
     if !status.success() {
         let _ = fs::remove_file(output);
-        return Err(CoreError::Any(anyhow!("chdman {subcmd} exited with {status}")));
+        return Err(CoreError::Any(anyhow!(
+            "chdman {subcmd} exited with {status}"
+        )));
     }
 
     sink.percent(1.0);

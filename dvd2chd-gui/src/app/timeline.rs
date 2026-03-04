@@ -1,5 +1,5 @@
-use super::App;
 use super::workflow::{JobStage, JobStageKind, StageState, TimelineKind};
+use super::App;
 use dvd2chd_core::StageEvent;
 
 impl App {
@@ -16,7 +16,11 @@ impl App {
             ],
         };
         if include_hash {
-            stages.push(JobStage::new(JobStageKind::Hash, "stage.hashes", StageState::Pending));
+            stages.push(JobStage::new(
+                JobStageKind::Hash,
+                "stage.hashes",
+                StageState::Pending,
+            ));
         }
         if let Some(first) = stages.first_mut() {
             first.state = StageState::Active;
