@@ -10,6 +10,9 @@ env:
   # Required so linuxdeploy / appimagetool work without FUSE on the runner
   APPIMAGE_EXTRACT_AND_RUN: 1
 
+permissions:
+  contents: write
+
 jobs:
   build-linux:
     name: Build Linux x86_64

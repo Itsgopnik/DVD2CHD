@@ -2,6 +2,8 @@
 name = "dvd2chd-core"
 version = "0.1.0"
 edition = "2021"
+description = "Core library for DVD/CD to CHD conversion"
+license = "MIT"
 
 [dependencies]
 anyhow = "1"
