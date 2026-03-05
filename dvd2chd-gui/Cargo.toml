@@ -41,6 +41,8 @@ assets = [
   ["target/release/tools/ddrescue",        "usr/lib/dvd2chd/tools/ddrescue",               "0755"],
   ["packaging/dvd2chd-gui.desktop",        "usr/share/applications/dvd2chd-gui.desktop",   "0644"],
   ["assets/icon.png",                      "usr/share/icons/hicolor/256x256/apps/dvd2chd.png", "0644"],
+  ["../BUNDLED_TOOLS.md",                  "usr/share/doc/dvd2chd/BUNDLED_TOOLS.md",       "0644"],
+  ["../LICENSE",                           "usr/share/doc/dvd2chd/copyright",              "0644"],
 ]
 
 # ── cargo-generate-rpm ─────────────────────────────────────────────────────────
@@ -78,4 +80,14 @@ mode = "0644"
 [[package.metadata.generate-rpm.assets]]
 source = "assets/icon.png"
 dest = "/usr/share/icons/hicolor/256x256/apps/dvd2chd.png"
+mode = "0644"
+
+[[package.metadata.generate-rpm.assets]]
+source = "../BUNDLED_TOOLS.md"
+dest = "/usr/share/doc/dvd2chd/BUNDLED_TOOLS.md"
+mode = "0644"
+
+[[package.metadata.generate-rpm.assets]]
+source = "../LICENSE"
+dest = "/usr/share/licenses/dvd2chd/LICENSE"
 mode = "0644"

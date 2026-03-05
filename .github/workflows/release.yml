@@ -61,6 +61,8 @@ jobs:
           cp -r target/release/tools               "$DIST/tools"
           cp dvd2chd-gui/packaging/dvd2chd-gui.desktop "$DIST/"
           cp dvd2chd-gui/assets/icon.png           "$DIST/dvd2chd.png"
+          cp BUNDLED_TOOLS.md                      "$DIST/"
+          cp LICENSE                               "$DIST/"
           tar czf "${DIST}.tar.gz" "$DIST"
           echo "VER=$VER" >> "$GITHUB_ENV"
 
@@ -93,6 +95,9 @@ jobs:
           cp target/release/tools/chdman        AppDir/usr/lib/dvd2chd/tools/
           cp target/release/tools/cdrdao        AppDir/usr/lib/dvd2chd/tools/
           cp target/release/tools/ddrescue      AppDir/usr/lib/dvd2chd/tools/
+          mkdir -p AppDir/usr/share/doc/dvd2chd
+          cp BUNDLED_TOOLS.md                   AppDir/usr/share/doc/dvd2chd/
+          cp LICENSE                            AppDir/usr/share/doc/dvd2chd/
 
           cp dvd2chd-gui/assets/icon.png                 AppDir/dvd2chd.png
           cp dvd2chd-gui/packaging/dvd2chd-gui.desktop   AppDir/
