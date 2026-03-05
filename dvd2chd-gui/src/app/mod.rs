@@ -33,9 +33,13 @@ mod draw_layout;
 mod draw_toolbar;
 mod draw_dialogs;
 
-use self::animation::{AnimationState, StageActivity};
+use self::animation::AnimationState;
+#[cfg(debug_assertions)]
+use self::animation::StageActivity;
 use self::state::{Language, PresetStore, Settings, Theme, UiPreferences};
-use self::workflow::{JobStage, JobStageKind, StageState};
+use self::workflow::{JobStage, StageState};
+#[cfg(debug_assertions)]
+use self::workflow::JobStageKind;
 use self::log::LogEntry;
 
 const LOG_ICON_BYTES: &[u8] = include_bytes!("../../assets/log_icon_32.png");
@@ -43,17 +47,17 @@ const LOG_ICON_BYTES: &[u8] = include_bytes!("../../assets/log_icon_32.png");
 fn my_small_shadow() -> egui::epaint::Shadow {
     egui::epaint::Shadow {
         offset: egui::vec2(0.0, 2.0),
-        blur: 6.0,
+        blur: 8.0,
         spread: 0.0,
-        color: Color32::from_black_alpha(80),
+        color: Color32::from_black_alpha(30),
     }
 }
 fn my_big_shadow() -> egui::epaint::Shadow {
     egui::epaint::Shadow {
-        offset: egui::vec2(0.0, 6.0),
+        offset: egui::vec2(0.0, 4.0),
         blur: 16.0,
         spread: 0.0,
-        color: Color32::from_black_alpha(90),
+        color: Color32::from_black_alpha(40),
     }
 }
 
@@ -77,20 +81,22 @@ fn translate_core_label(label: &str) -> String {
 
 fn card(ui: &mut egui::Ui, title: &str, mut body: impl FnMut(&mut egui::Ui)) {
     let visuals = ui.visuals().clone();
-    let accent = Color32::from_rgb(130, 170, 255);
+    let stroke_color = visuals.widgets.noninteractive.bg_stroke.color;
+    let fill = visuals.faint_bg_color;
     Frame::group(ui.style())
-        .fill(visuals.extreme_bg_color)
-        .rounding(Rounding::same(12.0))
-        .stroke(Stroke::new(
-            1.0,
-            visuals.widgets.noninteractive.bg_stroke.color,
-        ))
-        .outer_margin(Margin::symmetric(0.0, 6.0))
-        .inner_margin(Margin::symmetric(10.0, 8.0))
-        .shadow(my_small_shadow())
+        .fill(fill)
+        .rounding(Rounding::same(10.0))
+        .stroke(Stroke::new(1.0, stroke_color))
+        .outer_margin(Margin::symmetric(0.0, 4.0))
+        .inner_margin(Margin::symmetric(14.0, 12.0))
         .show(ui, |ui| {
             ui.horizontal(|ui| {
-                ui.heading(RichText::new(title).strong().color(accent));
+                ui.label(
+                    RichText::new(title)
+                        .strong()
+                        .color(visuals.text_color())
+                        .size(13.0),
+                );
                 ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
                     ui.add_space(0.0);
                 });
@@ -387,25 +393,26 @@ impl Default for App {
 fn palette_for_theme(theme: Theme) -> ThemePalette {
     match theme {
         Theme::Light => ThemePalette {
-            panel: Color32::from_rgb(246, 247, 250),
-            surface: Color32::from_rgb(255, 255, 255),
-            extreme: Color32::from_rgb(242, 244, 248),
-            stroke: Color32::from_rgb(210, 214, 220),
-            accent: Color32::from_rgb(60, 120, 255),
+            panel:   Color32::from_rgb(255, 255, 255),
+            surface: Color32::from_rgb(247, 247, 248),
+            extreme: Color32::from_rgb(239, 239, 241),
+            stroke:  Color32::from_rgb(225, 225, 228),
+            accent:  Color32::from_rgb(124, 93, 250),
         },
         Theme::HighContrast => ThemePalette {
-            panel: Color32::from_rgb(18, 18, 18),
-            surface: Color32::from_rgb(26, 26, 26),
-            extreme: Color32::from_rgb(8, 8, 8),
-            stroke: Color32::from_rgb(255, 255, 255),
-            accent: Color32::from_rgb(120, 180, 255),
+            panel:   Color32::from_rgb(0, 0, 0),
+            surface: Color32::from_rgb(18, 18, 18),
+            extreme: Color32::from_rgb(0, 0, 0),
+            stroke:  Color32::from_rgb(200, 200, 210),
+            accent:  Color32::from_rgb(180, 160, 255),
         },
         _ => ThemePalette {
-            panel: Color32::from_rgb(28, 30, 34),
-            surface: Color32::from_rgb(33, 36, 41),
-            extreme: Color32::from_rgb(20, 22, 26),
-            stroke: Color32::from_rgb(60, 65, 72),
-            accent: Color32::from_rgb(130, 170, 255),
+            // Soft Neutral — warm charcoal with soft lavender accent
+            panel:   Color32::from_rgb(28, 28, 30),
+            surface: Color32::from_rgb(44, 44, 46),
+            extreme: Color32::from_rgb(20, 20, 22),
+            stroke:  Color32::from_rgb(72, 72, 74),
+            accent:  Color32::from_rgb(167, 139, 250),
         },
     }
 }
@@ -552,11 +559,16 @@ impl eframe::App for App {
         #[cfg(not(debug_assertions))]
         let override_kind = None;
 
+        #[cfg(debug_assertions)]
         let StageActivity {
             compress_active,
             verify_active,
             hash_active,
         } = self
+            .animation
+            .update(ctx, &self.timeline, override_kind, self.running);
+        #[cfg(not(debug_assertions))]
+        let _ = self
             .animation
             .update(ctx, &self.timeline, override_kind, self.running);
 
@@ -617,9 +629,8 @@ impl eframe::App for App {
                 .resizable(true)
                 .default_height(180.0)
                 .show(ctx, |ui| {
-                    let accent = Color32::from_rgb(130, 170, 255);
                     ui.horizontal(|ui| {
-                        ui.heading(RichText::new(t!("log.heading").as_ref()).color(accent).strong());
+                        ui.heading(RichText::new(t!("log.heading").as_ref()).strong());
                         ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
                             if ui.button(t!("log.save").as_ref()).clicked() {
                                 if let Some(path) = rfd::FileDialog::new()

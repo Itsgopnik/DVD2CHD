@@ -39,6 +39,7 @@ pub(crate) fn unique_path(p: PathBuf) -> PathBuf {
     p
 }
 
+#[allow(dead_code)]
 pub(crate) fn sanitize_filename(s: &str) -> String {
     let mut out = String::with_capacity(s.len());
     for ch in s.chars() {

@@ -3,6 +3,29 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 fn main() {
+    // On Windows: embed a UAC manifest so Windows automatically shows an
+    // "Run as Administrator?" prompt on launch. Raw optical-drive access
+    // (IOCTL_CDROM_RAW_READ) requires elevated privileges.
+    if env::var("CARGO_CFG_TARGET_OS").as_deref() == Ok("windows") {
+        embed_manifest::embed_manifest(
+            embed_manifest::new_manifest("dvd2chd-gui")
+                .requested_execution_level(
+                    embed_manifest::manifest::ExecutionLevel::RequireAdministrator,
+                ),
+        )
+        .expect("failed to embed UAC manifest");
+
+        // Embed the application icon into the EXE.
+        // The .ico file lives in assets/ next to this build script.
+        let manifest_dir = env::var("CARGO_MANIFEST_DIR").unwrap();
+        let ico_path = PathBuf::from(&manifest_dir).join("assets/dvd2chd.ico");
+        if ico_path.exists() {
+            let mut res = winres::WindowsResource::new();
+            res.set_icon(ico_path.to_str().expect("ico path not valid UTF-8"));
+            res.compile().expect("failed to embed application icon");
+        }
+    }
+
     let manifest_dir = PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap());
     let tools_dir = manifest_dir.join("../tools/linux");
 

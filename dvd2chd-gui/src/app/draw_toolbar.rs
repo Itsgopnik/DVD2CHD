@@ -1,5 +1,6 @@
 use super::{breakpoint, my_big_shadow, my_small_shadow, palette_for_theme, App, Breakpoint};
 use super::state::{Language, Theme};
+#[cfg(debug_assertions)]
 use super::workflow::JobStageKind;
 use dark_light::{self, Mode as SystemMode};
 use egui::{
@@ -16,14 +17,15 @@ impl App {
         let start_status = self.start_status();
         let tool_warnings = self.tool_warnings();
 
+        let palette = palette_for_theme(self.effective_theme());
         let top_frame = Frame::none()
             .fill(vis.panel_fill)
-            .stroke(Stroke::new(1.0, vis.widgets.noninteractive.bg_stroke.color))
+            .stroke(Stroke::new(1.0, palette.stroke))
             .inner_margin(Margin {
-                left: 12.0,
-                right: 12.0,
-                top: 8.0,
-                bottom: 8.0,
+                left: 14.0,
+                right: 14.0,
+                top: 10.0,
+                bottom: 10.0,
             });
 
         TopBottomPanel::top("top_toolbar")
@@ -83,11 +85,12 @@ impl App {
                     } else {
                         t!("toolbar.start").to_string()
                     };
+                    let palette = palette_for_theme(self.effective_theme());
                     let start_button =
                         egui::Button::new(RichText::new(start_text).strong().size(18.0))
-                            .min_size(egui::vec2(if compact { 54.0 } else { 110.0 }, H))
-                            .fill(ui.visuals().selection.bg_fill)
-                            .stroke(Stroke::new(1.0, ui.visuals().selection.stroke.color));
+                            .min_size(egui::vec2(if compact { 54.0 } else { 120.0 }, H))
+                            .fill(palette.accent.linear_multiply(0.15))
+                            .stroke(Stroke::new(1.0, palette.accent.linear_multiply(0.5)));
                     if ui
                         .add_enabled(can_start, start_button)
                         .on_hover_text(t!("toolbar.start_shortcut").as_ref())
@@ -122,7 +125,7 @@ impl App {
                     // ── Kompakte Warnung: nur Icon + Hover-Text ──
                     if !tool_warnings.is_empty() {
                         let warning = tool_warnings.join(" · ");
-                        ui.colored_label(Color32::from_rgb(200, 80, 80), "⚠")
+                        ui.colored_label(Color32::from_rgb(239, 68, 68), "⚠")
                             .on_hover_text(warning);
                         if let Some(pm) = self.detected_pkg_manager {
                             let btn_text = if self.tool_install_running {
@@ -319,7 +322,7 @@ impl App {
                                 painter.circle_filled(
                                     dot_center,
                                     4.0,
-                                    Color32::from_rgb(255, 120, 120),
+                                    Color32::from_rgb(167, 139, 250),
                                 );
                             }
                         } else {
@@ -355,36 +358,72 @@ impl App {
             Theme::Light => Visuals::light(),
             _ => Visuals::dark(),
         };
-        let r = 12.0;
+
+        // ── Soft Neutral styling ──────────────────────────────────────────────
+        let r_window: f32 = 12.0;
+        let r_widget: f32 = 8.0;
+
         v.panel_fill = palette.panel;
-        v.widgets.noninteractive.bg_fill = palette.surface;
-        v.widgets.noninteractive.bg_stroke = Stroke::new(1.0, palette.stroke);
-        v.widgets.inactive.bg_fill = palette.surface;
-        v.widgets.inactive.bg_stroke = Stroke::new(1.0, palette.stroke);
-        v.widgets.active.bg_stroke = Stroke::new(1.0, palette.stroke);
-        v.widgets.open.bg_stroke = Stroke::new(1.0, palette.stroke);
         v.extreme_bg_color = palette.extreme;
+        v.faint_bg_color = palette.surface;
+        v.code_bg_color = palette.extreme;
 
-        v.window_rounding = Rounding::same(r);
-        v.menu_rounding = Rounding::same(r);
-        v.widgets.noninteractive.rounding = Rounding::same(r);
-        v.widgets.inactive.rounding = Rounding::same(r);
-        v.widgets.active.rounding = Rounding::same(r);
-        v.widgets.open.rounding = Rounding::same(r);
+        // Base widget surfaces
+        v.widgets.noninteractive.bg_fill   = palette.surface;
+        v.widgets.noninteractive.bg_stroke = Stroke::new(1.0, palette.stroke);
+        v.widgets.noninteractive.rounding  = Rounding::same(r_widget);
+        v.widgets.noninteractive.fg_stroke = Stroke::new(1.0, palette.stroke);
 
+        v.widgets.inactive.bg_fill   = palette.surface;
+        v.widgets.inactive.bg_stroke = Stroke::new(1.0, palette.stroke);
+        v.widgets.inactive.rounding  = Rounding::same(r_widget);
+
+        // Hovered: subtle background shift, clean border
+        v.widgets.hovered.bg_fill   = palette.surface.linear_multiply(1.15);
+        v.widgets.hovered.bg_stroke = Stroke::new(1.0, palette.accent.linear_multiply(0.45));
+        v.widgets.hovered.rounding  = Rounding::same(r_widget);
+        v.widgets.hovered.fg_stroke = Stroke::new(1.0, palette.accent);
+
+        // Active/pressed
+        v.widgets.active.bg_fill   = palette.accent.linear_multiply(0.12);
+        v.widgets.active.bg_stroke = Stroke::new(1.0, palette.accent.linear_multiply(0.6));
+        v.widgets.active.rounding  = Rounding::same(r_widget);
+        v.widgets.active.fg_stroke = Stroke::new(1.0, palette.accent);
+
+        // Open (combo-box / menu open state)
+        v.widgets.open.bg_fill   = palette.surface.linear_multiply(1.1);
+        v.widgets.open.bg_stroke = Stroke::new(1.0, palette.stroke);
+        v.widgets.open.rounding  = Rounding::same(r_widget);
+
+        // Windows & menus
+        v.window_fill   = palette.panel;
+        v.window_stroke = Stroke::new(1.0, palette.stroke);
+        v.window_rounding = Rounding::same(r_window);
+        v.menu_rounding   = Rounding::same(r_window - 4.0);
+
+        // Shadows — neutral, subtle
         v.window_shadow = my_big_shadow();
-        v.popup_shadow = my_small_shadow();
+        v.popup_shadow  = my_small_shadow();
+
+        // Selection
+        v.selection.bg_fill = palette.accent.linear_multiply(0.15);
+        v.selection.stroke  = Stroke::new(1.0, palette.accent);
+
+        // Hyperlinks
+        v.hyperlink_color = palette.accent;
+
         ctx.set_visuals(v);
 
         let mut s = (*ctx.style()).clone();
-        s.spacing.item_spacing = egui::vec2(8.0, 8.0);
-        s.spacing.button_padding = egui::vec2(10.0, 8.0);
+        s.spacing.item_spacing   = egui::vec2(8.0, 6.0);
+        s.spacing.button_padding = egui::vec2(12.0, 7.0);
+        s.spacing.window_margin  = egui::Margin::same(16.0);
         s.text_styles
-            .insert(egui::TextStyle::Heading, FontId::proportional(20.0));
+            .insert(egui::TextStyle::Heading, FontId::proportional(18.0));
         s.text_styles
-            .insert(egui::TextStyle::Body, FontId::proportional(15.0));
-        s.visuals.selection.bg_fill = palette.accent.linear_multiply(0.33);
-        s.visuals.selection.stroke = Stroke::new(1.0, palette.accent);
+            .insert(egui::TextStyle::Body, FontId::proportional(14.0));
+        s.visuals.selection.bg_fill = palette.accent.linear_multiply(0.15);
+        s.visuals.selection.stroke  = Stroke::new(1.0, palette.accent);
         ctx.set_style(s);
 
         ctx.set_pixels_per_point(self.zoom.clamp(0.75, 2.0));

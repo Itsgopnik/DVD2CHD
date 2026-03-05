@@ -320,7 +320,7 @@ impl App {
                             self.start_chdman_download();
                         }
                         if self.tools.chdman.is_some() {
-                            ui.colored_label(Color32::from_rgb(80, 200, 120), "✔ chdman OK");
+                            ui.colored_label(Color32::from_rgb(34, 197, 94), "✔ chdman OK");
                         }
                     });
                 });
@@ -423,7 +423,7 @@ impl App {
                     format!("{}{}", self.label, eta)
                 };
                 ui.scope(|ui| {
-                    ui.visuals_mut().extreme_bg_color = Color32::from_rgb(50, 55, 65);
+                    ui.visuals_mut().extreme_bg_color = Color32::from_rgb(30, 30, 34);
                     ui.add(
                         egui::ProgressBar::new(self.progress)
                             .text(bar_text)
@@ -445,13 +445,8 @@ impl App {
                     RichText::new(start_text)
                     .strong(),
                 )
-                .fill(
-                    Color32::from_rgb(50, 90, 180).linear_multiply(if can_start {
-                        0.6
-                    } else {
-                        0.25
-                    }),
-                );
+                .fill(ui.visuals().selection.bg_fill)
+                .stroke(Stroke::new(1.0, ui.visuals().selection.stroke.color));
                 if ui.add_enabled(can_start, start_btn).clicked() {
                     let _ = confy::store("dvd2chd", None::<&str>, &self.s);
                     self.start_job();
@@ -469,7 +464,7 @@ impl App {
                 let prefix = t!("quickstart.cannot_start");
                 let reasons = start_status.reasons.join(" · ");
                 ui.colored_label(
-                    Color32::from_rgb(200, 80, 80),
+                    Color32::from_rgb(239, 68, 68),
                     format!("{} {reasons}", prefix),
                 );
             }
@@ -581,7 +576,7 @@ impl App {
             }
             if preset_name_empty {
                 ui.colored_label(
-                    Color32::from_rgb(200, 80, 80),
+                    Color32::from_rgb(239, 68, 68),
                     t!("presets.name_required").as_ref(),
                 );
             }
@@ -653,7 +648,7 @@ impl App {
             }
             if self.batch_queue.is_empty() {
                 ui.colored_label(
-                    Color32::from_rgb(200, 80, 80),
+                    Color32::from_rgb(239, 68, 68),
                     t!("batch.empty_warning").as_ref(),
                 );
             }
@@ -774,7 +769,7 @@ impl App {
                     format!("{}{}", self.label, eta)
                 };
                 ui.scope(|ui| {
-                    ui.visuals_mut().extreme_bg_color = Color32::from_rgb(50, 55, 65);
+                    ui.visuals_mut().extreme_bg_color = Color32::from_rgb(30, 30, 34);
                     ui.add(
                         egui::ProgressBar::new(self.progress)
                             .text(bar_text)
@@ -819,7 +814,7 @@ impl App {
 
                 painter.rect(
                     rect.shrink(8.0),
-                    Rounding::same(12.0),
+                    Rounding::same(10.0),
                     visuals.extreme_bg_color,
                     Stroke::new(stroke_w, stroke_col),
                 );

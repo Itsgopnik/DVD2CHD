@@ -44,7 +44,7 @@ impl App {
                     ui.text_edit_singleline(&mut self.custom_name_input);
                 });
                 if let Some(err) = &self.custom_name_error {
-                    ui.colored_label(Color32::from_rgb(200, 80, 80), err);
+                    ui.colored_label(Color32::from_rgb(239, 68, 68), err);
                 }
                 ui.add_space(8.0);
                 ui.horizontal(|ui| {
@@ -105,11 +105,11 @@ impl App {
         let visuals = ui.visuals().clone();
         ui.add_space(10.0);
         ui.vertical_centered(|ui| {
-            let size = egui::vec2(96.0, 96.0);
+            let size = egui::vec2(150.0, 150.0);
             let (rect, _) = ui.allocate_exact_size(size, egui::Sense::hover());
             let painter = ui.painter();
             let center = rect.center();
-            let radius = size.x.min(size.y) * 0.42;
+            let radius = size.x.min(size.y) * 0.45;
             self.animation.draw_stage_graphic(
                 painter,
                 kind,
@@ -127,7 +127,7 @@ impl App {
                 ui.label(
                     RichText::new(label)
                         .color(palette.accent)
-                        .size(16.0)
+                        .size(13.0)
                         .strong(),
                 );
             });

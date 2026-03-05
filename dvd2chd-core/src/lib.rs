@@ -10,6 +10,9 @@ mod verify;
 #[cfg(target_os = "linux")]
 mod linux;
 
+#[cfg(windows)]
+pub mod windows_rip;
+
 use anyhow::{anyhow, Result};
 use once_cell::sync::Lazy;
 use regex::Regex;
@@ -137,8 +140,14 @@ pub fn archive_device(
     {
         linux::archive_device_linux(device, profile, opts, sink)
     }
-    #[cfg(not(target_os = "linux"))]
+    #[cfg(windows)]
     {
+        let _ = profile; // profile selection handled inside windows_rip
+        windows_rip::archive_device_windows(device, opts, sink)
+    }
+    #[cfg(not(any(target_os = "linux", windows)))]
+    {
+        let _ = (device, profile, opts, &sink);
         Err(CoreError::UnsupportedPlatform)
     }
 }

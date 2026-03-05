@@ -19,3 +19,7 @@ dark-light = "2"
 image = { version = "0.24", default-features = false, features = ["png"] }
 sha2 = "0.10"
 rust-i18n = "3"
+
+[build-dependencies]
+embed-manifest = "1"
+winres = "0.1"

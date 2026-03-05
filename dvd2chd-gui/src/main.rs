@@ -1,3 +1,5 @@
+#![windows_subsystem = "windows"]
+
 rust_i18n::i18n!("locales");
 
 mod app;
