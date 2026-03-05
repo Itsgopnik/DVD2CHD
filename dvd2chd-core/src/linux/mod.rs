@@ -3,6 +3,8 @@ pub(super) mod chd;
 pub(super) mod dvd;
 
 use anyhow::anyhow;
+use once_cell::sync::Lazy;
+use regex::Regex;
 use std::{
     fs,
     path::{Path, PathBuf},
@@ -10,6 +12,10 @@ use std::{
     sync::Arc,
     time::{SystemTime, UNIX_EPOCH},
 };
+
+static PS_ID_RE: Lazy<Regex> = Lazy::new(|| {
+    Regex::new(r"BOOT\d?\s*=\s*cdrom0?:\\([^;]+);1").expect("compile ps_id regex")
+});
 
 use crate::{
     hash::log_hashes,
@@ -182,8 +188,7 @@ pub fn archive_device_linux(
             .map_err(CoreError::Any)?;
             sink.stage(StageEvent::HashFinished);
             sink.percent(DEVICE_PROGRESS_HASH.end);
-        }
-        if !(opts.compute_md5 || opts.compute_sha1 || opts.compute_sha256) {
+        } else {
             sink.percent(1.0);
         }
         if opts.auto_eject {
@@ -259,8 +264,7 @@ pub fn archive_device_linux(
                 .map_err(CoreError::Any)?;
                 sink.stage(StageEvent::HashFinished);
                 sink.percent(DEVICE_PROGRESS_HASH.end);
-            }
-            if !(opts.compute_md5 || opts.compute_sha1 || opts.compute_sha256) {
+            } else {
                 sink.percent(1.0);
             }
             if opts.auto_eject {
@@ -325,8 +329,7 @@ pub(crate) fn ps_id_from_source(src: &Path) -> Option<String> {
         return None;
     }
     let txt = String::from_utf8_lossy(&out.stdout);
-    let re = regex::Regex::new(r"BOOT\d?\s*=\s*cdrom0?:\\([^;]+);1").ok()?;
-    let id = re.captures(&txt)?.get(1)?.as_str().to_string();
+    let id = PS_ID_RE.captures(&txt)?.get(1)?.as_str().to_string();
     Some(id.replace('\\', "/"))
 }
 

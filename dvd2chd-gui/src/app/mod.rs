@@ -413,6 +413,7 @@ impl eframe::App for App {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         // Style & Shortcuts & Toolbar
         self.apply_style(ctx);
+        self.ensure_icon_texture(ctx);
         self.ensure_log_icon_texture(ctx);
         self.handle_shortcuts(ctx);
         self.draw_top_toolbar(ctx);

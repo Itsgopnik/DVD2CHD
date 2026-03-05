@@ -23,8 +23,7 @@ pub fn compute_hashes(
     // the file. Using a `BufReader` is recommended for file hashing in Rust to
     // improve I/O performance.
     let f = fs::File::open(path)?;
-    // Use a larger reader buffer to reduce the number of read syscalls for big files.
-    let mut reader = BufReader::with_capacity(64 * 1024, f);
+    let mut reader = BufReader::with_capacity(128 * 1024, f);
     let mut buf = vec![0u8; 128 * 1024];
     let mut md5_h = do_md5.then(Md5::new);
     let mut sha1_h = do_sha1.then(Sha1::new);

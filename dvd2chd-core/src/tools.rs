@@ -22,6 +22,22 @@ pub fn probe_tool(name: &str, override_path: Option<&Path>) -> Option<PathBuf> {
             return Some(p.to_path_buf());
         }
     }
+    if let Ok(exe) = std::env::current_exe() {
+        if let Some(dir) = exe.parent() {
+            // Cargo dev layout:  target/{debug,release}/tools/<name>
+            let bundled = dir.join("tools").join(name);
+            if bundled.exists() {
+                return Some(bundled);
+            }
+            // Installed layout:  /usr/bin/ → /usr/lib/dvd2chd/tools/<name>
+            if let Some(prefix) = dir.parent() {
+                let installed = prefix.join("lib/dvd2chd/tools").join(name);
+                if installed.exists() {
+                    return Some(installed);
+                }
+            }
+        }
+    }
     which::which(name).ok()
 }
 

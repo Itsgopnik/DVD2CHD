@@ -259,10 +259,10 @@ pub fn convert_file(
         if src_bytes > 0 {
             let savings = (1.0 - chd_bytes as f64 / src_bytes as f64) * 100.0;
             sink.log(&format!(
-                "📦 {:.1} MB → {:.1} MB ({:+.1}%)",
+                "📦 {:.1} MB → {:.1} MB ({:.1}% smaller)",
                 src_bytes as f64 / 1_048_576.0,
                 chd_bytes as f64 / 1_048_576.0,
-                -savings,
+                savings,
             ));
         }
     }
@@ -353,7 +353,10 @@ pub fn extract_chd(
             let iso = unique_path(out_dir.join(format!("{stem}.iso")));
             match run_extract(&chdman, "extractdvd", input, &iso, opts, sink.clone()) {
                 Ok(p) => Ok(p),
-                Err(_) => {
+                Err(dvd_err) => {
+                    sink.log(&format!(
+                        "extractdvd failed ({dvd_err}), retrying as CD…"
+                    ));
                     let cue = unique_path(out_dir.join(format!("{stem}.cue")));
                     run_extract(&chdman, "extractcd", input, &cue, opts, sink)
                 }

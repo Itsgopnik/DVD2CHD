@@ -1,4 +1,5 @@
 use anyhow::anyhow;
+use once_cell::sync::Lazy;
 use regex::Regex;
 use std::{
     fs,
@@ -10,6 +11,11 @@ use std::{
 
 use crate::util::{ensure_tool, unique_path};
 use crate::{CoreError, CoreResult, ProgressSink};
+
+static CUE_FILE_RE: Lazy<Regex> = Lazy::new(|| {
+    Regex::new(r#"(?i)^\s*FILE\s+("([^"]+)"|(\S+))\s+(\S+)\s*$"#)
+        .expect("compile cue FILE line regex")
+});
 
 pub(super) fn rip_cd_raw(
     cdrdao: &Path,
@@ -145,32 +151,29 @@ pub(super) fn make_cue_paths_relative(
     fs::File::open(cue_path)
         .and_then(|mut f| f.read_to_string(&mut txt))
         .map_err(CoreError::Io)?;
-    let re = Regex::new(r#"(?i)^\s*FILE\s+("([^"]+)"|(\S+))\s+(\S+)\s*$"#)
-        .map_err(|e| CoreError::Any(anyhow!("Regex: {e}")))?;
     let mut out = String::with_capacity(txt.len() + 64);
     let mut did = false;
     let mut first = true;
 
     for line in txt.lines() {
-        if let Some(c) = re.captures(line) {
+        if let Some(c) = CUE_FILE_RE.captures(line) {
             let ftype = c.get(4).map(|m| m.as_str()).unwrap_or("BINARY");
+            let old = c
+                .get(2)
+                .or_else(|| c.get(3))
+                .map(|m| m.as_str())
+                .unwrap_or("");
+            let old_filename = Path::new(old)
+                .file_name()
+                .map(|n| n.to_string_lossy().to_string())
+                .unwrap_or_else(|| old.to_string());
             let new_name = if first {
                 first = false;
                 preferred_bin
                     .and_then(|p| p.file_name().map(|n| n.to_string_lossy().to_string()))
-                    .unwrap_or_else(|| {
-                        let old = c.get(2).or_else(|| c.get(3)).unwrap().as_str();
-                        Path::new(old)
-                            .file_name()
-                            .map(|n| n.to_string_lossy().to_string())
-                            .unwrap_or_else(|| old.to_string())
-                    })
+                    .unwrap_or(old_filename)
             } else {
-                let old = c.get(2).or_else(|| c.get(3)).unwrap().as_str();
-                Path::new(old)
-                    .file_name()
-                    .map(|n| n.to_string_lossy().to_string())
-                    .unwrap_or_else(|| old.to_string())
+                old_filename
             };
             out.push_str(&format!(r#"FILE "{}" {}"#, new_name, ftype.to_uppercase()));
             out.push('\n');

@@ -1,0 +1,29 @@
+# Maintainer: DVD2CHD Contributors
+pkgname=dvd2chd
+pkgver=__VERSION__
+pkgrel=1
+pkgdesc="Dump and convert optical media (DVD/CD) to CHD archives"
+arch=('x86_64')
+url="https://github.com/__REPO__"
+license=('MIT')
+depends=('gtk3')
+optdepends=(
+    'chdman: use system chdman instead of bundled'
+    'cdrdao: use system cdrdao instead of bundled'
+    'ddrescue: use system ddrescue instead of bundled'
+)
+source=("${pkgname}-v${pkgver}-linux-x86_64.tar.gz::https://github.com/__REPO__/releases/download/v${pkgver}/${pkgname}-v${pkgver}-linux-x86_64.tar.gz")
+sha256sums=('__SHA256__')
+
+package() {
+    cd "${pkgname}-v${pkgver}-linux-x86_64"
+
+    install -Dm755 dvd2chd-gui                  "${pkgdir}/usr/bin/dvd2chd-gui"
+
+    install -Dm755 tools/chdman                  "${pkgdir}/usr/lib/dvd2chd/tools/chdman"
+    install -Dm755 tools/cdrdao                  "${pkgdir}/usr/lib/dvd2chd/tools/cdrdao"
+    install -Dm755 tools/ddrescue                "${pkgdir}/usr/lib/dvd2chd/tools/ddrescue"
+
+    install -Dm644 dvd2chd-gui.desktop           "${pkgdir}/usr/share/applications/dvd2chd-gui.desktop"
+    install -Dm644 dvd2chd.png                   "${pkgdir}/usr/share/icons/hicolor/256x256/apps/dvd2chd.png"
+}

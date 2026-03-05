@@ -4,7 +4,10 @@ use std::{
     io::{BufRead, BufReader, Read, Write},
     path::Path,
     process::{Command, Stdio},
-    sync::Arc,
+    sync::{
+        atomic::{AtomicBool, Ordering},
+        Arc,
+    },
     thread,
     time::{Duration, Instant},
 };
@@ -79,10 +82,21 @@ pub(super) fn run_ddrescue(
         });
     }
 
+    // Run the progress poller concurrently with the child process so that the
+    // loop exits as soon as wait_with_cancel returns, even if ddrescue exits
+    // before writing the expected number of bytes (which would otherwise cause
+    // the old blocking poll to loop forever).
+    let poll_done = Arc::new(AtomicBool::new(false));
     if total.is_some() {
-        poll_progress_until(iso, total, DEVICE_PROGRESS_RIP, sink.clone());
+        let done2 = poll_done.clone();
+        let iso2 = iso.to_path_buf();
+        let sink2 = sink.clone();
+        thread::spawn(move || {
+            poll_progress_until(&iso2, total, DEVICE_PROGRESS_RIP, sink2, done2);
+        });
     }
     let status = wait_with_cancel(&mut child, || sink.is_cancelled()).map_err(CoreError::Io)?;
+    poll_done.store(true, Ordering::Relaxed);
     if sink.is_cancelled() {
         return Err(CoreError::Cancelled);
     }
@@ -239,6 +253,7 @@ pub(super) fn poll_progress_until(
     total: Option<u64>,
     range: ProgressRange,
     sink: Arc<dyn ProgressSink>,
+    done: Arc<AtomicBool>,
 ) {
     let total = match total {
         Some(v) if v > 0 => v,
@@ -248,7 +263,7 @@ pub(super) fn poll_progress_until(
     let mut last_t = std::time::Instant::now();
     let mut avg_mbps = 0.0f64;
     loop {
-        if sink.is_cancelled() {
+        if sink.is_cancelled() || done.load(Ordering::Relaxed) {
             break;
         }
         if let Ok(meta) = fs::metadata(iso) {
