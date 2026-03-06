@@ -6,15 +6,19 @@ A Rust tool for archiving optical media (DVDs and CDs) to compressed CHD (Compre
 
 ## Features
 
-- **Multi-profile support** — PS1, PS2, generic CD, and PC disc profiles
-- **Device archiving** — Direct ripping from optical drives (Linux)
+- **Multi-profile support** — PS1, PS2, generic CD, and PC disc profiles with auto-detection
+- **Device archiving** — Direct ripping from optical drives (Linux) with auto-eject
 - **File conversion** — Convert existing ISO/CUE files to CHD
-- **Auto-detection** — Automatically detects media type and selects optimal settings
+- **CHD extraction** — Extract CHD back to ISO or BIN+CUE (auto-detects DVD vs. CD)
+- **Batch mode** — Queue multiple files for sequential processing
+- **Drag & drop** — Drop ISO/CUE files directly onto the window
 - **Verification** — Built-in CHD integrity check after creation
-- **Hashing** — Optional MD5/SHA1 hash computation
+- **Hashing** — Optional MD5, SHA1, and SHA256 computation
 - **Process priority** — `nice` and `ionice` support to keep the system responsive
-- **Auto-install** — Missing tools can be installed via system package manager (Linux)
-- **Modern GUI** — egui-based interface with dark/light/high-contrast themes, animations, batch mode
+- **Auto-install** — Missing tools can be installed via system package manager or downloaded automatically
+- **Desktop notifications** — Get notified when a job finishes
+- **Internationalization** — English and German UI
+- **Modern GUI** — egui-based interface with dark/light/high-contrast/auto themes, smooth animations (with reduce-motion toggle), and responsive layout
 
 ## System Requirements
 
@@ -42,11 +46,26 @@ A Rust tool for archiving optical media (DVDs and CDs) to compressed CHD (Compre
 
 ## Installation
 
+### Pre-built Packages
+
+Download the latest release from the [Releases page](https://github.com/Itsgopnik/DVD2CHD/releases):
+
+| Format | Distro | Install command |
+|--------|--------|-----------------|
+| `.deb` | Debian / Ubuntu | `sudo dpkg -i dvd2chd_*.deb` |
+| `.rpm` | Fedora / openSUSE / RHEL | `sudo rpm -i dvd2chd-*.rpm` |
+| `.AppImage` | Any Linux | `chmod +x dvd2chd-*.AppImage && ./dvd2chd-*.AppImage` |
+| `PKGBUILD` | Arch / CachyOS / Manjaro | `makepkg -si` |
+| `.tar.gz` | Any Linux | Extract and run `dvd2chd-gui` |
+
+> The `.deb`, `.rpm`, and `.tar.gz` packages bundle `chdman`, `cdrdao`, and `ddrescue`.
+> The AppImage requires these tools to be installed system-wide.
+
 ### From Source
 
 ```bash
-git clone https://github.com/Itsgopnik/dvd2chd.git
-cd dvd2chd
+git clone https://github.com/Itsgopnik/DVD2CHD.git
+cd DVD2CHD
 
 cargo build --release
 
@@ -60,7 +79,7 @@ cargo build --release
 sudo apt install mame-tools cdrdao gddrescue
 ```
 
-**Arch Linux:**
+**Arch Linux / CachyOS:**
 ```bash
 sudo pacman -S cdrdao ddrescue
 # chdman: available via AUR (yay -S chdman) or set path manually in Options → Tools
@@ -76,7 +95,7 @@ sudo dnf install mame cdrdao ddrescue
 sudo zypper install mame cdrdao ddrescue
 ```
 
-> The GUI can also install missing tools automatically via the **"⬇ Installieren"** button in the toolbar (uses `pkexec` for privilege escalation).
+> The GUI can also install missing tools automatically via the toolbar button (uses `pkexec` for privilege escalation).
 
 ## Usage
 
@@ -177,6 +196,8 @@ sudo usermod -a -G cdrom $USER
 **CHD verification failed** — Source media may be damaged. Enable ddrescue + scrape pass in Options → Ripping for better recovery.
 
 ## Contributing
+
+Contributions are welcome! This project was built with AI assistance, so there's likely room for improvement — feel free to open issues or submit PRs.
 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/my-feature`)
