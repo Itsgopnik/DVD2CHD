@@ -48,10 +48,8 @@ fn install_dev_desktop_files(manifest_dir: &Path) {
     let src_icon = manifest_dir.join("assets/icon.png");
     println!("cargo:rerun-if-changed={}", src_icon.display());
     let icon_dest_dir = home.join(".local/share/icons/hicolor/256x256/apps");
-    if src_icon.exists() {
-        if fs::create_dir_all(&icon_dest_dir).is_ok() {
-            let _ = fs::copy(&src_icon, icon_dest_dir.join("dvd2chd.png"));
-        }
+    if src_icon.exists() && fs::create_dir_all(&icon_dest_dir).is_ok() {
+        let _ = fs::copy(&src_icon, icon_dest_dir.join("dvd2chd.png"));
     }
 
     // ── .desktop file ─────────────────────────────────────────────────────────
