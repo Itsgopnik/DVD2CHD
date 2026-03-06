@@ -96,7 +96,7 @@ jobs:
           cp BUNDLED_TOOLS.md                   AppDir/usr/share/doc/dvd2chd/
           cp LICENSE                            AppDir/usr/share/doc/dvd2chd/
 
-          cp dvd2chd-gui/assets/icon.png                 AppDir/dvd2chd.png
+          convert dvd2chd-gui/assets/icon.png -resize 256x256 AppDir/dvd2chd.png
           cp dvd2chd-gui/packaging/dvd2chd-gui.desktop   AppDir/
           sed -i 's|^Exec=.*|Exec=dvd2chd-gui|' AppDir/dvd2chd-gui.desktop
 
