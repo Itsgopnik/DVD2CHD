@@ -32,6 +32,8 @@ mod presets;
 mod draw_layout;
 mod draw_toolbar;
 mod draw_dialogs;
+#[cfg(windows)]
+mod taskbar;
 
 use self::animation::AnimationState;
 #[cfg(debug_assertions)]
@@ -196,6 +198,7 @@ pub fn run() {
     }
 }
 
+#[derive(Clone, Copy)]
 struct ThemePalette {
     panel: Color32,
     surface: Color32,
@@ -274,6 +277,18 @@ struct App {
 
     // Session job history (not persisted)
     job_history: Vec<(std::time::SystemTime, PathBuf, u64)>,
+
+    // Smooth progress display (interpolated toward `progress`)
+    progress_display: f32,
+
+    // Theme crossfade
+    last_effective_theme: Theme,
+    theme_fade_start: Option<std::time::Instant>,
+    theme_fade_from: Option<ThemePalette>,
+
+    // Windows taskbar progress
+    #[cfg(windows)]
+    taskbar_progress: Option<taskbar::TaskbarProgress>,
 
     // CHD extraction
     extract_chd_path: Option<PathBuf>,
@@ -382,6 +397,12 @@ impl Default for App {
             job_start_time: None,
             progress_hide_at: None,
             job_history: Vec::new(),
+            progress_display: 0.0,
+            last_effective_theme: current_theme,
+            theme_fade_start: None,
+            theme_fade_from: None,
+            #[cfg(windows)]
+            taskbar_progress: None,
             extract_chd_path: None,
             extract_out_dir: None,
             extract_mode: dvd2chd_core::ExtractMode::Auto,
@@ -458,16 +479,16 @@ impl eframe::App for App {
                             // Record job history entry
                             let chd_size = p.metadata().map(|m| m.len()).unwrap_or(0);
                             self.job_history.push((std::time::SystemTime::now(), p.clone(), chd_size));
-                            // System notification
+                            // System notification (cross-platform via notify-rust)
                             if self.s.notify_on_done {
                                 let name = p
                                     .file_name()
                                     .map(|n| n.to_string_lossy().into_owned())
                                     .unwrap_or_else(|| p.display().to_string());
-                                let _ = Command::new("notify-send")
-                                    .arg("DVD2CHD")
-                                    .arg(format!("✔ {}", name))
-                                    .spawn();
+                                let _ = notify_rust::Notification::new()
+                                    .summary("DVD2CHD")
+                                    .body(&format!("✔ {}", name))
+                                    .show();
                             }
                             if !self.batch_queue.is_empty() {
                                 let _ = self.start_next_batch_if_possible();
@@ -585,6 +606,33 @@ impl eframe::App for App {
                 }
                 if hash_active {
                     self.debug_update_indicator(Some(JobStageKind::Hash));
+                }
+            }
+        }
+
+        // ── Smooth progress interpolation ──
+        {
+            let dt = ctx.input(|i| i.stable_dt).min(0.1);
+            let diff = self.progress - self.progress_display;
+            if diff.abs() < 0.001 || self.progress < self.progress_display - 0.01 {
+                // Snap immediately on reset or when close enough
+                self.progress_display = self.progress;
+            } else {
+                self.progress_display += diff * (1.0 - (-10.0_f32 * dt).exp());
+            }
+        }
+
+        // ── Windows taskbar progress ──
+        #[cfg(windows)]
+        {
+            if self.taskbar_progress.is_none() {
+                self.taskbar_progress = taskbar::TaskbarProgress::new("DVD2CHD (GUI)");
+            }
+            if let Some(tb) = &self.taskbar_progress {
+                if self.running || self.progress > 0.0 {
+                    tb.set_progress(self.progress);
+                } else {
+                    tb.clear();
                 }
             }
         }
@@ -810,6 +858,11 @@ impl App {
         }
     }
 
+    /// Smoothly interpolated progress value for display.
+    pub(super) fn smooth_progress(&self) -> f32 {
+        self.progress_display
+    }
+
     pub(super) fn do_manual_eject(&mut self) {
         let Some(dev) = self.s.device_path.clone() else {
             return;
@@ -843,5 +896,25 @@ impl App {
                 ));
             }
         }
+    }
+}
+
+fn lerp_color(a: Color32, b: Color32, t: f32) -> Color32 {
+    let t = t.clamp(0.0, 1.0);
+    Color32::from_rgba_unmultiplied(
+        (a.r() as f32 + (b.r() as f32 - a.r() as f32) * t) as u8,
+        (a.g() as f32 + (b.g() as f32 - a.g() as f32) * t) as u8,
+        (a.b() as f32 + (b.b() as f32 - a.b() as f32) * t) as u8,
+        (a.a() as f32 + (b.a() as f32 - a.a() as f32) * t) as u8,
+    )
+}
+
+fn lerp_palette(a: &ThemePalette, b: &ThemePalette, t: f32) -> ThemePalette {
+    ThemePalette {
+        panel: lerp_color(a.panel, b.panel, t),
+        surface: lerp_color(a.surface, b.surface, t),
+        extreme: lerp_color(a.extreme, b.extreme, t),
+        stroke: lerp_color(a.stroke, b.stroke, t),
+        accent: lerp_color(a.accent, b.accent, t),
     }
 }

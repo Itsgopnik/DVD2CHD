@@ -12,6 +12,7 @@ impl App {
             ui.horizontal(|ui| {
                 if ui
                     .button(t!("source.choose_file").as_ref())
+                    .on_hover_text("Ctrl+O")
                     .clicked()
                 {
                     if let Some(p) = rfd::FileDialog::new()
@@ -33,7 +34,9 @@ impl App {
             });
 
             ui.horizontal(|ui| {
-                if ui.button(t!("source.set_device").as_ref()).clicked() {
+                if ui.button(t!("source.set_device").as_ref())
+                    .on_hover_text("Ctrl+G")
+                    .clicked() {
                     if let Some(p) = rfd::FileDialog::new().pick_folder() {
                         self.set_device_path(p, None);
                     }
@@ -51,12 +54,14 @@ impl App {
                 let can_eject = self.s.device_path.is_some() && !self.running;
                 if ui
                     .add_enabled(can_eject, egui::Button::new(t!("source.eject").as_ref()))
+                    .on_hover_text(t!("tooltip.eject").as_ref())
                     .clicked()
                 {
                     self.do_manual_eject();
                 }
                 if ui
                     .button(t!("source.detect_drive").as_ref())
+                    .on_hover_text(t!("tooltip.detect_drive").as_ref())
                     .clicked()
                 {
                     self.detected_drives = crate::drive::probe_drives();
@@ -107,6 +112,7 @@ impl App {
             ui.horizontal(|ui| {
                 if ui
                     .button(t!("target.set_folder").as_ref())
+                    .on_hover_text(t!("tooltip.set_output").as_ref())
                     .clicked()
                 {
                     if let Some(p) = rfd::FileDialog::new().pick_folder() {
@@ -121,7 +127,9 @@ impl App {
                     .unwrap_or_else(|| "—".into());
                 ui.label(out_label.as_str());
                 if let Some(dir) = &self.s.out_dir {
-                    if ui.button(t!("target.open_folder").as_ref()).clicked() {
+                    if ui.button(t!("target.open_folder").as_ref())
+                        .on_hover_text(t!("tooltip.open_output").as_ref())
+                        .clicked() {
                         let _ = open_folder(dir);
                     }
                 }
@@ -187,8 +195,10 @@ impl App {
                 card(ui, t!("panel.chd_hashes").as_ref(), |ui| {
                     ui.horizontal(|ui| {
                         let delete_after_text = t!("chd.delete_after");
-                        ui.checkbox(&mut self.s.delete_image_after, delete_after_text.as_ref());
-                        ui.checkbox(&mut self.s.auto_eject, t!("chd.auto_eject").as_ref());
+                        ui.checkbox(&mut self.s.delete_image_after, delete_after_text.as_ref())
+                            .on_hover_text(t!("tooltip.delete_after").as_ref());
+                        ui.checkbox(&mut self.s.auto_eject, t!("chd.auto_eject").as_ref())
+                            .on_hover_text(t!("tooltip.auto_eject").as_ref());
                     });
                     ui.horizontal(|ui| {
                         ui.label("Hashes:");
@@ -197,7 +207,8 @@ impl App {
                         ui.checkbox(&mut self.s.compute_sha256, "SHA-256");
                     });
                     ui.horizontal(|ui| {
-                        ui.checkbox(&mut self.s.notify_on_done, t!("chd.notify_on_done").as_ref());
+                        ui.checkbox(&mut self.s.notify_on_done, t!("chd.notify_on_done").as_ref())
+                            .on_hover_text(t!("tooltip.notify").as_ref());
                     });
                     ui.horizontal(|ui| {
                         let rename_id_text = t!("chd.rename_by_id");
@@ -416,16 +427,17 @@ impl App {
             self.draw_stage_preview(ui);
 
             if (self.running || self.progress > 0.0) && !self.is_extract_job {
+                let sp = self.smooth_progress();
                 let eta = self.eta_suffix();
                 let bar_text = if self.label.is_empty() {
-                    format!("{:.0}%{}", self.progress * 100.0, eta)
+                    format!("{:.0}%{}", sp * 100.0, eta)
                 } else {
                     format!("{}{}", self.label, eta)
                 };
                 ui.scope(|ui| {
                     ui.visuals_mut().extreme_bg_color = Color32::from_rgb(30, 30, 34);
                     ui.add(
-                        egui::ProgressBar::new(self.progress)
+                        egui::ProgressBar::new(sp)
                             .text(bar_text)
                             .animate(self.running),
                     );
@@ -762,16 +774,17 @@ impl App {
 
             // Progress (only while an extract job is running)
             if (self.running || self.progress > 0.0) && self.is_extract_job {
+                let sp = self.smooth_progress();
                 let eta = self.eta_suffix();
                 let bar_text = if self.label.is_empty() {
-                    format!("{:.0}%{}", self.progress * 100.0, eta)
+                    format!("{:.0}%{}", sp * 100.0, eta)
                 } else {
                     format!("{}{}", self.label, eta)
                 };
                 ui.scope(|ui| {
                     ui.visuals_mut().extreme_bg_color = Color32::from_rgb(30, 30, 34);
                     ui.add(
-                        egui::ProgressBar::new(self.progress)
+                        egui::ProgressBar::new(sp)
                             .text(bar_text)
                             .animate(true),
                     );

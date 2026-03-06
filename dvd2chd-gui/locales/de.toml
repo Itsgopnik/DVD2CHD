@@ -205,3 +205,12 @@
 "history.empty" = "Noch kein Job abgeschlossen."
 "history.chd_size" = "Größe:"
 "history.open" = "Öffnen"
+
+# === Tooltips ===
+"tooltip.eject" = "Disc aus dem Laufwerk auswerfen"
+"tooltip.detect_drive" = "Optische Laufwerke automatisch erkennen"
+"tooltip.set_output" = "Ordner für die CHD-Ausgabedateien wählen"
+"tooltip.open_output" = "Ausgabeordner im Explorer öffnen"
+"tooltip.delete_after" = "ISO/BIN-Quelldatei nach erfolgreicher CHD-Erstellung löschen"
+"tooltip.auto_eject" = "Disc nach dem Rippen automatisch auswerfen"
+"tooltip.notify" = "Desktop-Benachrichtigung anzeigen, wenn ein Job fertig ist"

@@ -95,6 +95,7 @@ pub struct AnimationState {
     rip: PhaseAnim,
 
     last_tick: Instant,
+    created_at: Instant,
     reduce_motion: bool,
 }
 
@@ -157,6 +158,7 @@ impl Default for AnimationState {
             hash: PhaseAnim::new((rand_val * 0.3).fract()),
             rip: PhaseAnim::new(0.0),
             last_tick: Instant::now(),
+            created_at: Instant::now(),
             reduce_motion: false,
         }
     }
@@ -254,6 +256,9 @@ impl AnimationState {
 
         if running || needs_repaint {
             ctx.request_repaint_after(Duration::from_millis(16));
+        } else {
+            // Idle breathing: slow repaint for subtle pulse animations
+            ctx.request_repaint_after(Duration::from_millis(100));
         }
 
         StageActivity {
@@ -275,6 +280,12 @@ impl AnimationState {
             JobStageKind::Input => self.rip.reset(),
         }
         self.last_tick = Instant::now();
+    }
+
+    /// Slow sine wave for idle breathing effects (−1..1 range, ~3s period).
+    fn idle_breath(&self) -> f32 {
+        let t = self.created_at.elapsed().as_secs_f32();
+        (t * TAU / 3.0).sin()
     }
 
     pub fn draw_stage_graphic(
@@ -455,7 +466,7 @@ impl AnimationState {
             let num_streams = 8_usize;
             for i in 0..num_streams {
                 let stream_t =
-                    (phase * 1.5 + i as f32 * 0.3 / num_streams as f32).rem_euclid(1.0);
+                    (phase * 2.0 + i as f32 * 0.3 / num_streams as f32).rem_euclid(1.0);
                 let stream_radius = disc_r * (1.0 - stream_t);
                 let angle = i as f32 * TAU / num_streams as f32;
 
@@ -498,11 +509,14 @@ impl AnimationState {
                 );
             }
         } else {
-            // ── Idle: static center dot ───────────────────────────────────────
+            // ── Idle: breathing center dot ────────────────────────────────────
+            let breath = self.idle_breath();
+            let breath_scale = 1.0 + 0.15 * breath;
             for i in (0..6_usize).rev() {
-                let r = radius * 0.10 * (1.0 - i as f32 * 0.05);
+                let r = radius * 0.10 * (1.0 - i as f32 * 0.05) * breath_scale;
                 let brightness = 60 + (i * 10) as u8;
-                let alpha = (150u8).saturating_sub((i * 20) as u8);
+                let base_alpha = (150u8).saturating_sub((i * 20) as u8);
+                let alpha = (base_alpha as f32 * (0.7 + 0.3 * breath)) as u8;
                 painter.circle_filled(
                     center,
                     r,
@@ -822,6 +836,15 @@ impl AnimationState {
                     fill_color = color_raw;
                 }
 
+                // Edge fade — packages fade in/out at belt boundaries
+                let fade_zone = raw_w * 1.2;
+                let edge_fade = {
+                    let fade_left = ((pkg_x - belt_left + raw_w * 0.5) / fade_zone).clamp(0.0, 1.0);
+                    let fade_right = ((belt_right + raw_w * 0.5 - pkg_x) / fade_zone).clamp(0.0, 1.0);
+                    fade_left.min(fade_right)
+                };
+                let fill_color = fill_color.linear_multiply(edge_fade);
+
                 // Shadow
                 painter.rect_filled(
                     egui::Rect::from_min_size(
@@ -829,7 +852,7 @@ impl AnimationState {
                         egui::vec2(pkg_w, pkg_h),
                     ),
                     egui::Rounding::same(radius * 0.02),
-                    Color32::from_black_alpha(30),
+                    Color32::from_black_alpha((30.0 * edge_fade) as u8),
                 );
 
                 // Package body
@@ -843,7 +866,7 @@ impl AnimationState {
                 );
 
                 // Detail lines
-                let detail_alpha = if pkg_x >= exit_x { 0.2 } else { 0.12 };
+                let detail_alpha = (if pkg_x >= exit_x { 0.2 } else { 0.12 }) * edge_fade;
                 if pkg_h > radius * 0.04 {
                     painter.line_segment(
                         [
@@ -869,20 +892,22 @@ impl AnimationState {
                         egui::Align2::CENTER_CENTER,
                         "\u{2713}",
                         egui::FontId::monospace(font_size),
-                        Color32::from_white_alpha(115),
+                        Color32::from_white_alpha((115.0 * edge_fade) as u8),
                     );
                 }
             }
         } else {
-            // Idle: one static package on the input belt
+            // Idle: breathing package on the input belt
+            let breath = self.idle_breath();
             let idle_x = belt_left + (input_belt_end - belt_left) * 0.4;
+            let idle_alpha = 0.15 + 0.08 * breath;
             painter.rect_filled(
                 egui::Rect::from_min_size(
                     Pos2::new(idle_x - raw_w * 0.5, belt_y - raw_h),
                     egui::vec2(raw_w, raw_h),
                 ),
                 egui::Rounding::same(radius * 0.02),
-                mul(accent, 0.20),
+                mul(accent, idle_alpha),
             );
         }
 
@@ -1281,7 +1306,8 @@ impl AnimationState {
                 Color32::from_rgba_unmultiplied(34, 197, 94, (drive * 0.45 * 255.0) as u8),
             );
         } else {
-            // ── Idle state label ──────────────────────────────────────────────
+            // ── Idle state label (breathing) ─────────────────────────────────
+            let breath = self.idle_breath();
             let status_y = doc_y + doc_h + radius * 0.16;
             let font_sm = (radius * 0.085).clamp(6.0, 11.0);
             painter.text(
@@ -1289,7 +1315,7 @@ impl AnimationState {
                 egui::Align2::CENTER_CENTER,
                 "AWAITING VERIFICATION",
                 egui::FontId::monospace(font_sm),
-                mul(accent, 0.22),
+                mul(accent, 0.16 + 0.10 * breath),
             );
         }
     }
@@ -1447,10 +1473,11 @@ impl AnimationState {
 
             // ── Block hash lines ──────────────────────────────────────────
             let num_hashes = 8_usize;
-            // Use phase to drive which hash is "current"
-            let hash_cycle = (phase * (num_hashes + 3) as f32).floor() as usize;
-            let current_active = hash_cycle % (num_hashes + 3);
-            let batch = hash_cycle / (num_hashes + 3);
+            // Cycle through num_hashes steps per phase revolution so
+            // phase=0 and phase=1 produce the same visual state (seamless wrap).
+            let hash_step = (phase * num_hashes as f32).floor() as usize;
+            let current_active = hash_step % num_hashes;
+            let batch = (phase * 30.0).floor() as usize / num_hashes;
 
             for i in 0..num_hashes {
                 let ly = line_y(line);
@@ -1458,7 +1485,7 @@ impl AnimationState {
                     break;
                 }
 
-                if i <= current_active && i < num_hashes {
+                {
                     let seed = (i as u32 * 7 + (phase * 30.0).floor() as u32 * 13) ^ 0xDEAD;
                     let hash_str = gen_hash(seed, 32);
                     let blk_num = i + batch * num_hashes;
@@ -1643,20 +1670,23 @@ impl AnimationState {
                 }
             }
         } else {
-            // ── Idle state ────────────────────────────────────────────────
+            // ── Idle state (breathing cursor) ─────────────────────────────
+            let breath = self.idle_breath();
+            // Blinking cursor: use breath as on/off
+            let cursor_char = if breath > 0.0 { "$ _" } else { "$  " };
             painter.text(
                 Pos2::new(content_x, content_y),
                 egui::Align2::LEFT_CENTER,
-                "$ _",
+                cursor_char,
                 egui::FontId::monospace(font_sm),
-                mul(accent, 0.22),
+                mul(accent, 0.16 + 0.10 * breath.abs()),
             );
             painter.text(
                 Pos2::new(content_x, content_y + line_h * 2.0),
                 egui::Align2::LEFT_CENTER,
                 "Ready. Awaiting input...",
                 egui::FontId::monospace(font_sm),
-                mul(accent, 0.12),
+                mul(accent, 0.08 + 0.06 * breath),
             );
         }
     }

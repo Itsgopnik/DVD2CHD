@@ -1,4 +1,4 @@
-use super::{breakpoint, my_big_shadow, my_small_shadow, palette_for_theme, App, Breakpoint};
+use super::{breakpoint, lerp_palette, my_big_shadow, my_small_shadow, palette_for_theme, App, Breakpoint};
 use super::state::{Language, Theme};
 #[cfg(debug_assertions)]
 use super::workflow::JobStageKind;
@@ -350,9 +350,31 @@ impl App {
             });
     }
 
-    pub(super) fn apply_style(&self, ctx: &egui::Context) {
+    pub(super) fn apply_style(&mut self, ctx: &egui::Context) {
         let effective = self.effective_theme();
-        let palette = palette_for_theme(effective);
+        let target_palette = palette_for_theme(effective);
+
+        // ── Theme crossfade ──
+        if effective != self.last_effective_theme {
+            self.theme_fade_from = Some(palette_for_theme(self.last_effective_theme));
+            self.theme_fade_start = Some(std::time::Instant::now());
+            self.last_effective_theme = effective;
+        }
+        let palette = if let (Some(from), Some(start)) =
+            (self.theme_fade_from, self.theme_fade_start)
+        {
+            let t = start.elapsed().as_secs_f32() / 0.3; // 300 ms transition
+            if t >= 1.0 {
+                self.theme_fade_from = None;
+                self.theme_fade_start = None;
+                target_palette
+            } else {
+                ctx.request_repaint(); // keep animating until done
+                lerp_palette(&from, &target_palette, t)
+            }
+        } else {
+            target_palette
+        };
 
         let mut v = match effective {
             Theme::Light => Visuals::light(),

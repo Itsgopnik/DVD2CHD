@@ -205,3 +205,12 @@
 "history.empty" = "No jobs completed yet."
 "history.chd_size" = "Size:"
 "history.open" = "Open"
+
+# === Tooltips ===
+"tooltip.eject" = "Eject disc from the drive"
+"tooltip.detect_drive" = "Automatically detect optical drives"
+"tooltip.set_output" = "Choose folder for CHD output files"
+"tooltip.open_output" = "Open output folder in file manager"
+"tooltip.delete_after" = "Delete ISO/BIN source file after successful CHD creation"
+"tooltip.auto_eject" = "Automatically eject disc after ripping"
+"tooltip.notify" = "Show desktop notification when a job finishes"

@@ -1,8 +1,8 @@
 # DVD2CHD
 
 > **This is a fork** of the original [DVD2CHD](https://github.com/itsgopnik/dvd2chd) project.
-> The main additions are a **Windows-native optical disc ripper** and a redesigned GUI with an
-> Apple-inspired Glassmorphism look and calm animations.
+> The main additions are a **Windows-native optical disc ripper** and a redesigned GUI with a
+> clean Notion/Arc-inspired design and smooth continuous animations.
 
 A Rust tool for archiving optical media (DVDs and CDs) to compressed CHD (Compressed Hunks of Data)
 format, with a modern graphical interface.
@@ -14,7 +14,13 @@ format, with a modern graphical interface.
 | Change | Details |
 |--------|---------|
 | **Windows device ripping** | Native Win32 ripper replaces cdrdao/ddrescue on Windows. CD and DVD ripping work out of the box — no third-party ripping tools needed. |
-| **GUI redesign** | Deep Space Glassmorphism look: large rounded corners (20 px), vivid cyan-glow shadows, high-contrast accent borders, distinct per-stage animation colors (Rip=cyan+orange, CHD=accent, Verify=green, Hash=purple). No console window on launch. |
+| **GUI redesign** | "Soft & Neutral" design inspired by Notion/Arc Browser: warm neutral tones, soft lavender accents, 12 px window / 8 px widget rounding, neutral drop shadows. Dark, Light, and High-Contrast themes. No console window on launch. |
+| **Smooth animations** | Continuous per-stage animations (Rip, Compress, Verify, Hash) with seamless phase wrap-around, edge-fading packages, idle breathing effects, and slow CPU-friendly repaint when idle. |
+| **Taskbar progress** | Windows taskbar shows real-time job progress (green bar on the taskbar icon) via raw COM `ITaskbarList3` — no extra crate dependencies. |
+| **Desktop notifications** | Cross-platform "job finished" notifications via `notify-rust` (Windows toast, Linux D-Bus, macOS alerts). Replaces the previous Linux-only `notify-send` approach. |
+| **Smooth progress bar** | Progress bar interpolates smoothly toward the target value instead of jumping. Resets snap instantly when a new job starts. |
+| **Theme crossfade** | Switching between Dark/Light/High-Contrast themes fades smoothly over 300 ms instead of a hard cut. |
+| **Tooltips** | All buttons, checkboxes, and interactive elements now show descriptive hover text (localized DE/EN). |
 | **App icon** | Custom `.ico` embedded in the EXE via `winres` — shows up in Explorer, taskbar, and the title bar. |
 | **ARM64 Windows support** | Tested and builds cleanly on `aarch64-pc-windows-msvc`. |
 
@@ -286,6 +292,7 @@ dvd2chd/
             ├── draw_layout.rs / draw_toolbar.rs / draw_dialogs.rs
             ├── job.rs / timeline.rs / workflow.rs
             ├── tools_check.rs / source.rs / presets.rs / log.rs
+            ├── taskbar.rs     # Windows taskbar progress (raw COM ITaskbarList3)
             └── state.rs
 ```
 
@@ -335,7 +342,11 @@ Open drive (CreateFileW on \\.\D:)
 - **`ProgressSink` trait** — unified progress reporting from core to GUI; same interface on Linux and Windows
 - **Cooperative cancellation** — `is_cancelled()` polling, no forceful kills mid-write
 - **Atomic writes** — `.chd.part` files ensure crash-safe output; renamed to `.chd` only on success
-- **`PhaseAnim` struct** — exponential-decay animation smoothing in the GUI
+- **`PhaseAnim` struct** — exponential-decay animation smoothing with seamless wrap-around (integer-factor phase multipliers ensure visual continuity at cycle boundaries)
+- **Idle breathing** — time-based sine-wave pulse when no job is running (100 ms repaint interval to save CPU)
+- **Smooth progress** — `progress_display` field smoothly interpolates toward the true `progress` value using exponential decay, snapping on reset
+- **Taskbar progress** — raw COM `ITaskbarList3` FFI on Windows (no crate dependency), lazy-initialized on first use
+- **Theme crossfade** — `lerp_palette()` blends old/new `ThemePalette` over 300 ms when the effective theme changes
 
 ---
 
