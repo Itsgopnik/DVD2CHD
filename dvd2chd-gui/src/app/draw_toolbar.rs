@@ -197,37 +197,28 @@ impl App {
                     ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                         // ⚙ Theme/Settings-Menü (ganz rechts)
                         egui::menu::menu_button(ui, "⚙", |ui| {
-                            let mut auto = self.auto_theme;
+                            // System Auto (follows OS dark/light)
+                            let is_auto = self.theme != Theme::HighContrast;
                             if ui
-                                .checkbox(&mut auto, t!("toolbar.theme_auto").as_ref())
+                                .selectable_label(is_auto, t!("toolbar.theme_auto").as_ref())
                                 .clicked()
                             {
-                                self.auto_theme = auto;
-                                if self.auto_theme {
-                                    self.theme = Theme::Auto;
-                                } else {
-                                    self.theme = self.manual_theme;
-                                }
+                                self.auto_theme = true;
+                                self.theme = Theme::Auto;
                                 self.save_ui_prefs();
                             }
-                            ui.separator();
-                            let theme_options = [
-                                (Theme::Dark, t!("theme.dark")),
-                                (Theme::Light, t!("theme.light")),
-                                (Theme::HighContrast, t!("theme.high_contrast")),
-                            ];
-                            for (variant, label) in theme_options {
-                                let selected = if self.auto_theme {
-                                    self.manual_theme == variant
-                                } else {
-                                    self.theme == variant
-                                };
-                                if ui.selectable_label(selected, label.as_ref()).clicked() {
-                                    self.auto_theme = false;
-                                    self.manual_theme = variant;
-                                    self.theme = variant;
-                                    self.save_ui_prefs();
-                                }
+                            // High Contrast
+                            if ui
+                                .selectable_label(
+                                    self.theme == Theme::HighContrast,
+                                    t!("theme.high_contrast").as_ref(),
+                                )
+                                .clicked()
+                            {
+                                self.auto_theme = false;
+                                self.theme = Theme::HighContrast;
+                                self.manual_theme = Theme::HighContrast;
+                                self.save_ui_prefs();
                             }
                             ui.separator();
                             let mut reduce_motion = self.reduce_motion;
@@ -452,17 +443,13 @@ impl App {
     }
 
     pub(super) fn effective_theme(&self) -> Theme {
-        if self.auto_theme {
-            match dark_light::detect() {
+        match self.theme {
+            Theme::HighContrast => Theme::HighContrast,
+            _ => match dark_light::detect() {
                 Ok(SystemMode::Light) => Theme::Light,
                 Ok(SystemMode::Dark) => Theme::Dark,
-                _ => self.manual_theme,
-            }
-        } else {
-            match self.theme {
-                Theme::Auto => self.manual_theme,
-                other => other,
-            }
+                _ => Theme::Dark,
+            },
         }
     }
 

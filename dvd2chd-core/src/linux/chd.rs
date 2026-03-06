@@ -47,6 +47,7 @@ pub(super) fn chd_dvd_atomic(
 
     sink.stage(StageEvent::ChdStarted);
     sink.log(&format!("createdvd {} → {}", iso.display(), tmp.display()));
+    let input_bytes_dvd = iso.metadata().map(|m| m.len()).unwrap_or(0);
     let mut child = cmd.spawn().map_err(CoreError::Io)?;
     let stdout = child
         .stdout
@@ -59,6 +60,7 @@ pub(super) fn chd_dvd_atomic(
     {
         let s = sink.clone();
         let re = &*CHDMAN_PERCENT_RE;
+        let chd_start = std::time::Instant::now();
         std::thread::spawn(move || {
             for line in BufReader::new(stdout).lines().map_while(Result::ok) {
                 if let Some(c) = re.captures(&line) {
@@ -66,7 +68,14 @@ pub(super) fn chd_dvd_atomic(
                         let stage = p / 100.0;
                         let global = DEVICE_PROGRESS_CHD.lerp(stage);
                         s.percent(global);
-                        s.label(&format!("CHD: {p:.0}%"));
+                        let elapsed = chd_start.elapsed().as_secs_f64();
+                        let speed = if elapsed > 0.5 && input_bytes_dvd > 0 {
+                            let processed = input_bytes_dvd as f64 * (p as f64 / 100.0);
+                            format!(" — {:.1} MB/s", processed / elapsed / 1_048_576.0)
+                        } else {
+                            String::new()
+                        };
+                        s.label(&format!("CHD: {p:.0}%{speed}"));
                     }
                 }
                 s.log(&line);
@@ -141,6 +150,7 @@ pub(super) fn chd_cd_atomic(
 
     sink.stage(StageEvent::ChdStarted);
     sink.log(&format!("createcd {} → {}", cue.display(), tmp.display()));
+    let input_bytes_cd = bin.metadata().map(|m| m.len()).unwrap_or(0);
     let mut child = cmd.spawn().map_err(CoreError::Io)?;
     let stdout = child
         .stdout
@@ -153,6 +163,7 @@ pub(super) fn chd_cd_atomic(
     {
         let s = sink.clone();
         let re = &*CHDMAN_PERCENT_RE;
+        let chd_start = std::time::Instant::now();
         std::thread::spawn(move || {
             for line in BufReader::new(stdout).lines().map_while(Result::ok) {
                 if let Some(c) = re.captures(&line) {
@@ -160,7 +171,14 @@ pub(super) fn chd_cd_atomic(
                         let stage = p / 100.0;
                         let global = DEVICE_PROGRESS_CHD.lerp(stage);
                         s.percent(global);
-                        s.label(&format!("CHD: {p:.0}%"));
+                        let elapsed = chd_start.elapsed().as_secs_f64();
+                        let speed = if elapsed > 0.5 && input_bytes_cd > 0 {
+                            let processed = input_bytes_cd as f64 * (p as f64 / 100.0);
+                            format!(" — {:.1} MB/s", processed / elapsed / 1_048_576.0)
+                        } else {
+                            String::new()
+                        };
+                        s.label(&format!("CHD: {p:.0}%{speed}"));
                     }
                 }
                 s.log(&line);

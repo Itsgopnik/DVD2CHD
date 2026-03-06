@@ -4,9 +4,12 @@
 use std::ffi::c_void;
 use std::ptr;
 
+#[allow(clippy::upper_case_acronyms)]
 type HRESULT = i32;
+#[allow(clippy::upper_case_acronyms)]
 type HWND = isize;
 
+#[allow(clippy::upper_case_acronyms)]
 #[repr(C)]
 struct GUID {
     data1: u32,

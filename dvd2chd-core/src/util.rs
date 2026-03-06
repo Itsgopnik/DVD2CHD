@@ -6,12 +6,27 @@ use std::{
     time::Duration,
 };
 
+/// Hide the console window that would otherwise flash when spawning
+/// a child process on Windows (e.g. chdman, powershell, wmic).
+/// On non-Windows platforms this is a no-op.
+#[cfg(windows)]
+pub(crate) fn hide_console_window(cmd: &mut Command) -> &mut Command {
+    use std::os::windows::process::CommandExt;
+    const CREATE_NO_WINDOW: u32 = 0x0800_0000;
+    cmd.creation_flags(CREATE_NO_WINDOW)
+}
+#[cfg(not(windows))]
+pub(crate) fn hide_console_window(cmd: &mut Command) -> &mut Command {
+    cmd
+}
+
 pub(crate) fn ensure_tool(bin: &Path, args: &[&str]) -> Result<()> {
-    Command::new(bin)
-        .args(args)
+    let mut cmd = Command::new(bin);
+    cmd.args(args)
         .stdout(Stdio::null())
-        .stderr(Stdio::null())
-        .status()
+        .stderr(Stdio::null());
+    hide_console_window(&mut cmd);
+    cmd.status()
         .map(|_| ())
         .context("Tool not executable")
 }
@@ -39,7 +54,6 @@ pub(crate) fn unique_path(p: PathBuf) -> PathBuf {
     p
 }
 
-#[allow(dead_code)]
 pub(crate) fn sanitize_filename(s: &str) -> String {
     let mut out = String::with_capacity(s.len());
     for ch in s.chars() {

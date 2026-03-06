@@ -7,7 +7,7 @@ use std::{
 };
 
 use crate::{CoreError, CoreResult, ProgressSink, StageEvent, CHDMAN_PERCENT_FLOAT_RE};
-use crate::util::wait_with_cancel;
+use crate::util::{hide_console_window, wait_with_cancel};
 
 pub(crate) fn run_verify(chdman: &Path, chd: &Path, sink: Arc<dyn ProgressSink>) -> CoreResult<()> {
     sink.label("Verification…");
@@ -18,6 +18,7 @@ pub(crate) fn run_verify(chdman: &Path, chd: &Path, sink: Arc<dyn ProgressSink>)
         .arg(chd)
         .stdout(Stdio::piped())
         .stderr(Stdio::piped());
+    hide_console_window(&mut cmd);
 
     let mut child = cmd.spawn().map_err(CoreError::Io)?;
     let stdout = child
@@ -29,9 +30,10 @@ pub(crate) fn run_verify(chdman: &Path, chd: &Path, sink: Arc<dyn ProgressSink>)
         .take()
         .ok_or_else(|| CoreError::Any(anyhow!("stderr not piped")))?;
 
+    let chd_name = chd.display().to_string();
     {
         let s = sink.clone();
-        let chd_name = chd.to_string_lossy().to_string();
+        let name = chd_name.clone();
         let re = &*CHDMAN_PERCENT_FLOAT_RE;
         std::thread::spawn(move || {
             for line in BufReader::new(stdout).lines().map_while(Result::ok) {
@@ -41,16 +43,16 @@ pub(crate) fn run_verify(chdman: &Path, chd: &Path, sink: Arc<dyn ProgressSink>)
                         s.label(&format!("Verification {p:.0}%"));
                     }
                 }
-                s.log(&format!("verify {} :: {}", chd_name, line));
+                s.log(&format!("verify {name} :: {line}"));
             }
         });
     }
     {
         let s = sink.clone();
-        let chd_name = chd.to_string_lossy().to_string();
+        let name = chd_name;
         std::thread::spawn(move || {
             for line in BufReader::new(stderr).lines().map_while(Result::ok) {
-                s.log(&format!("verify {} :: {}", chd_name, line));
+                s.log(&format!("verify {name} :: {line}"));
             }
         });
     }

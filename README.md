@@ -13,15 +13,17 @@ format, with a modern graphical interface.
 
 | Change | Details |
 |--------|---------|
-| **Windows device ripping** | Native Win32 ripper replaces cdrdao/ddrescue on Windows. CD and DVD ripping work out of the box — no third-party ripping tools needed. |
-| **GUI redesign** | "Soft & Neutral" design inspired by Notion/Arc Browser: warm neutral tones, soft lavender accents, 12 px window / 8 px widget rounding, neutral drop shadows. Dark, Light, and High-Contrast themes. No console window on launch. |
+| **Windows device ripping** | Native Win32 ripper replaces cdrdao/ddrescue on Windows. CD and DVD ripping work out of the box — no third-party ripping tools needed. Disc eject via `IOCTL_STORAGE_EJECT_MEDIA` (manual button + auto-eject after rip). |
+| **GUI redesign** | "Soft & Neutral" design inspired by Notion/Arc Browser: warm neutral tones, soft lavender accents, 12 px window / 8 px widget rounding, neutral drop shadows. System Auto theme (follows OS dark/light) + High-Contrast option. No console window in release builds (debug builds keep the console for diagnostics). |
 | **Smooth animations** | Continuous per-stage animations (Rip, Compress, Verify, Hash) with seamless phase wrap-around, edge-fading packages, idle breathing effects, and slow CPU-friendly repaint when idle. |
 | **Taskbar progress** | Windows taskbar shows real-time job progress (green bar on the taskbar icon) via raw COM `ITaskbarList3` — no extra crate dependencies. |
 | **Desktop notifications** | Cross-platform "job finished" notifications via `notify-rust` (Windows toast, Linux D-Bus, macOS alerts). Replaces the previous Linux-only `notify-send` approach. |
+| **Live speed display** | Progress bar shows real-time read/write speed (MB/s) during ripping and CHD compression — both device ripping and file conversion. |
 | **Smooth progress bar** | Progress bar interpolates smoothly toward the target value instead of jumping. Resets snap instantly when a new job starts. |
-| **Theme crossfade** | Switching between Dark/Light/High-Contrast themes fades smoothly over 300 ms instead of a hard cut. |
+| **Theme crossfade** | Switching between System Auto and High-Contrast fades smoothly over 300 ms instead of a hard cut. |
 | **Tooltips** | All buttons, checkboxes, and interactive elements now show descriptive hover text (localized DE/EN). |
 | **App icon** | Custom `.ico` embedded in the EXE via `winres` — shows up in Explorer, taskbar, and the title bar. |
+| **Silent subprocesses** | All child processes (chdman, wmic) launch with `CREATE_NO_WINDOW` — no console flashes. Drive detection uses native `GetDriveTypeW` instead of PowerShell. |
 | **ARM64 Windows support** | Tested and builds cleanly on `aarch64-pc-windows-msvc`. |
 
 ---
@@ -326,6 +328,8 @@ Open drive (CreateFileW on \\.\D:)
         chdman createdvd -i disc.iso -o disc.chd.part
             │
             └─ run_verify → optional hash → rename .chd.part → .chd
+                    │
+                    └─ optional: IOCTL_STORAGE_EJECT_MEDIA (auto-eject)
 ```
 
 **Progress ranges (mirrors Linux):**
@@ -347,6 +351,7 @@ Open drive (CreateFileW on \\.\D:)
 - **Smooth progress** — `progress_display` field smoothly interpolates toward the true `progress` value using exponential decay, snapping on reset
 - **Taskbar progress** — raw COM `ITaskbarList3` FFI on Windows (no crate dependency), lazy-initialized on first use
 - **Theme crossfade** — `lerp_palette()` blends old/new `ThemePalette` over 300 ms when the effective theme changes
+- **Silent subprocesses** — `CREATE_NO_WINDOW` flag on all Windows `Command` spawns via `hide_console_window()` helper; drive detection uses native `GetLogicalDriveStringsW` + `GetDriveTypeW` instead of PowerShell
 
 ---
 

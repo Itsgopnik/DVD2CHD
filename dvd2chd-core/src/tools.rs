@@ -26,7 +26,10 @@ pub fn probe_tool(name: &str, override_path: Option<&Path>) -> Option<PathBuf> {
 }
 
 pub fn tool_version(path: &Path, version_arg: &str) -> Option<String> {
-    let out = Command::new(path).arg(version_arg).output().ok()?;
+    let mut cmd = Command::new(path);
+    cmd.arg(version_arg);
+    crate::util::hide_console_window(&mut cmd);
+    let out = cmd.output().ok()?;
     let take_first = |bytes: &[u8]| {
         let s = String::from_utf8_lossy(bytes);
         let line = s.lines().next().unwrap_or_default().trim();

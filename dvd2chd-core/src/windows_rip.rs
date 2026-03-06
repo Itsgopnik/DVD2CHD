@@ -12,8 +12,6 @@
 //!      DVD : read 2048-byte data sectors → ISO
 //!   6. chdman createcd / createdvd → verify → optional hash
 
-#![cfg(windows)]
-
 use crate::{
     hash::log_hashes,
     util::{ensure_tool, sanitize_filename, unique_path, wait_with_cancel},
@@ -40,6 +38,16 @@ fn lerp(start: f32, end: f32, t: f32) -> f32 {
     start + (end - start) * t.clamp(0.0, 1.0)
 }
 
+/// Format a speed suffix like " — 12.3 MB/s" from bytes processed and elapsed seconds.
+/// Returns empty string if elapsed < 0.5 s (to avoid noisy initial values).
+fn speed_suffix(bytes_done: f64, elapsed_secs: f64) -> String {
+    if elapsed_secs > 0.5 && bytes_done > 0.0 {
+        format!(" — {:.1} MB/s", bytes_done / elapsed_secs / 1_048_576.0)
+    } else {
+        String::new()
+    }
+}
+
 // ── Win32 types & constants ───────────────────────────────────────────────────
 type Handle = isize;
 const INVALID_HANDLE_VALUE: Handle = -1;
@@ -54,6 +62,7 @@ const DRIVE_CDROM: u32 = 5;
 // IOCTL codes
 const IOCTL_CDROM_READ_TOC: u32 = 0x00024000;
 const IOCTL_CDROM_RAW_READ: u32 = 0x0002403E;
+const IOCTL_STORAGE_EJECT_MEDIA: u32 = 0x002D4808;
 
 // Sector sizes
 const SECTOR_DATA: usize = 2048;
@@ -213,6 +222,37 @@ pub fn list_optical_drives() -> Vec<String> {
 
 /// Rip an optical drive to CHD.  Entry point called instead of `archive_device`
 /// on Windows.
+/// Eject the optical disc from the given drive path (e.g. "D:", "\\.\D:").
+/// Returns Ok(()) on success, Err on failure.
+pub fn eject_drive_windows(dev: &Path) -> CoreResult<()> {
+    let dev_str = dev.to_string_lossy().to_string();
+    let drive_letter = extract_drive_letter(&dev_str).ok_or_else(|| {
+        CoreError::Any(anyhow::anyhow!("Cannot parse drive letter from: {}", dev_str))
+    })?;
+    let win32_path = format!("\\\\.\\{}:", drive_letter);
+    let drive = open_drive(&win32_path)?;
+    let mut returned: u32 = 0;
+    let ok = unsafe {
+        DeviceIoControl(
+            drive.0,
+            IOCTL_STORAGE_EJECT_MEDIA,
+            0,
+            0,
+            0,
+            0,
+            &mut returned,
+            0,
+        )
+    };
+    if ok == 0 {
+        let err = unsafe { GetLastError() };
+        return Err(CoreError::Any(anyhow::anyhow!(
+            "IOCTL_STORAGE_EJECT_MEDIA failed (Win32 err={})", err
+        )));
+    }
+    Ok(())
+}
+
 pub fn archive_device_windows(
     dev: &Path,
     opts: &ArchiveOptions,
@@ -322,6 +362,9 @@ pub fn archive_device_windows(
         }
 
         finish_job(&chd, &chdman, opts, &sink)?;
+        if opts.auto_eject {
+            eject_after_rip(dev, &sink);
+        }
         Ok(chd)
     } else {
         // ── DVD path ──────────────────────────────────────────────────────────
@@ -347,7 +390,17 @@ pub fn archive_device_windows(
         }
 
         finish_job(&chd, &chdman, opts, &sink)?;
+        if opts.auto_eject {
+            eject_after_rip(dev, &sink);
+        }
         Ok(chd)
+    }
+}
+
+fn eject_after_rip(dev: &Path, sink: &Arc<dyn ProgressSink>) {
+    match eject_drive_windows(dev) {
+        Ok(()) => sink.log(&format!("💿 Disc ausgeworfen: {}", dev.display())),
+        Err(e) => sink.log(&format!("⚠ Auswerfen fehlgeschlagen: {e}")),
     }
 }
 
@@ -538,9 +591,13 @@ fn rip_cd_to_bin(
     total_sectors: u32,
     sink: &Arc<dyn ProgressSink>,
 ) -> CoreResult<Vec<u8>> {
+    if total_sectors == 0 {
+        return Err(CoreError::Any(anyhow::anyhow!("Disc has 0 sectors — nothing to rip")));
+    }
     let mut file = File::create(bin_path).map_err(CoreError::Io)?;
     let mut sector_modes: Vec<u8> = Vec::with_capacity(tracks.len());
     let mut done_sectors = 0u32;
+    let rip_start = std::time::Instant::now();
 
     sink.log(&format!(
         "Ripping {} sectors (raw 2352 B) → {}",
@@ -606,10 +663,14 @@ fn rip_cd_to_bin(
             done_sectors += 1;
 
             // Progress every 32 sectors
-            if done_sectors % 32 == 0 {
+            if done_sectors.is_multiple_of(32) {
                 let t = done_sectors as f32 / total_sectors as f32;
                 sink.percent(lerp(0.0, PROG_RIP_END, t));
-                sink.label(&format!("Rip: {:.0}%", t * 100.0));
+                let spd = speed_suffix(
+                    done_sectors as f64 * SECTOR_RAW as f64,
+                    rip_start.elapsed().as_secs_f64(),
+                );
+                sink.label(&format!("Rip: {:.0}%{spd}", t * 100.0));
             }
         }
 
@@ -628,6 +689,9 @@ fn rip_dvd_to_iso(
     retries: u32,
     sink: &Arc<dyn ProgressSink>,
 ) -> CoreResult<()> {
+    if total_sectors == 0 {
+        return Err(CoreError::Any(anyhow::anyhow!("Disc has 0 sectors — nothing to rip")));
+    }
     // Seek to disc start
     let ok = unsafe { SetFilePointerEx(h, 0, std::ptr::null_mut(), FILE_BEGIN) };
     if ok == 0 {
@@ -638,6 +702,7 @@ fn rip_dvd_to_iso(
     let chunk = CHUNK_SECTORS as usize * SECTOR_DATA;
     let mut buf = vec![0u8; chunk];
     let mut done_sectors = 0u32;
+    let rip_start = std::time::Instant::now();
 
     sink.log(&format!(
         "Ripping {} sectors (ISO 2048 B) → {}",
@@ -681,22 +746,27 @@ fn rip_dvd_to_iso(
         }
 
         if ok == 0 || read_bytes == 0 {
-            // Pad the remaining sectors with zeros and finish
+            // Pad the remaining sectors with zeros and advance
+            let pad_sectors = (to_read / SECTOR_DATA) as u32;
             sink.log(&format!(
-                "✖ Unrecoverable read error at sector {} – padding",
-                done_sectors
+                "✖ Unrecoverable read error at sector {} – padding {} sectors",
+                done_sectors, pad_sectors
             ));
             let zeros = vec![0u8; to_read];
             file.write_all(&zeros).map_err(CoreError::Io)?;
+            done_sectors += pad_sectors;
         } else {
             file.write_all(&buf_slice[..read_bytes as usize])
                 .map_err(CoreError::Io)?;
+            done_sectors += (read_bytes as usize / SECTOR_DATA) as u32;
         }
-
-        done_sectors += (read_bytes as usize / SECTOR_DATA) as u32;
         let t = done_sectors as f32 / total_sectors as f32;
         sink.percent(lerp(0.0, PROG_RIP_END, t));
-        sink.label(&format!("Rip: {:.0}%", t * 100.0));
+        let spd = speed_suffix(
+            done_sectors as f64 * SECTOR_DATA as f64,
+            rip_start.elapsed().as_secs_f64(),
+        );
+        sink.label(&format!("Rip: {:.0}%{spd}", t * 100.0));
     }
 
     sink.log(&format!("✔ ISO written: {} sectors", done_sectors));
@@ -769,9 +839,13 @@ fn run_chdman(
         .args(&extras)
         .stdout(Stdio::piped())
         .stderr(Stdio::piped());
+    crate::util::hide_console_window(&mut cmd);
 
     sink.stage(StageEvent::ChdStarted);
     sink.log(&format!("{} {} → {}", subcmd, input.display(), tmp.display()));
+
+    // Get input file size for speed calculation
+    let input_bytes = input.metadata().map(|m| m.len()).unwrap_or(0);
 
     let mut child = cmd
         .spawn()
@@ -789,12 +863,17 @@ fn run_chdman(
     {
         let s = sink.clone();
         let re = &*CHDMAN_PERCENT_RE;
+        let chd_start = std::time::Instant::now();
         std::thread::spawn(move || {
             for line in BufReader::new(stdout).lines().map_while(Result::ok) {
                 if let Some(c) = re.captures(&line) {
                     if let Ok(p) = c[1].parse::<f32>() {
                         s.percent(lerp(PROG_CHD_START, PROG_CHD_END, p / 100.0));
-                        s.label(&format!("CHD: {:.0}%", p));
+                        let spd = speed_suffix(
+                            input_bytes as f64 * (p as f64 / 100.0),
+                            chd_start.elapsed().as_secs_f64(),
+                        );
+                        s.label(&format!("CHD: {:.0}%{spd}", p));
                     }
                 }
                 s.log(&line);

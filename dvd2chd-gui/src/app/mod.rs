@@ -867,33 +867,53 @@ impl App {
         let Some(dev) = self.s.device_path.clone() else {
             return;
         };
-        let udisks_ok = Command::new("udisksctl")
-            .args(["eject", "-b"])
-            .arg(&dev)
-            .output()
-            .map(|o| o.status.success())
-            .unwrap_or(false);
-        if udisks_ok {
-            self.log_line(&t!("log.eject_ok", path = dev.display().to_string()));
-            return;
+
+        #[cfg(windows)]
+        {
+            match dvd2chd_core::windows_rip::eject_drive_windows(&dev) {
+                Ok(()) => {
+                    self.log_line(&t!("log.eject_ok", path = dev.display().to_string()));
+                }
+                Err(e) => {
+                    self.log_line(&t!(
+                        "log.eject_failed",
+                        path = dev.display().to_string(),
+                        err = format!("{e}")
+                    ));
+                }
+            }
         }
-        match Command::new("eject").arg(&dev).status() {
-            Ok(s) if s.success() => {
+
+        #[cfg(not(windows))]
+        {
+            let udisks_ok = Command::new("udisksctl")
+                .args(["eject", "-b"])
+                .arg(&dev)
+                .output()
+                .map(|o| o.status.success())
+                .unwrap_or(false);
+            if udisks_ok {
                 self.log_line(&t!("log.eject_ok", path = dev.display().to_string()));
+                return;
             }
-            Ok(s) => {
-                self.log_line(&t!(
-                    "log.eject_failed",
-                    path = dev.display().to_string(),
-                    err = format!("exit {}", s.code().unwrap_or(-1))
-                ));
-            }
-            Err(e) => {
-                self.log_line(&t!(
-                    "log.eject_failed",
-                    path = dev.display().to_string(),
-                    err = e.to_string()
-                ));
+            match Command::new("eject").arg(&dev).status() {
+                Ok(s) if s.success() => {
+                    self.log_line(&t!("log.eject_ok", path = dev.display().to_string()));
+                }
+                Ok(s) => {
+                    self.log_line(&t!(
+                        "log.eject_failed",
+                        path = dev.display().to_string(),
+                        err = format!("exit {}", s.code().unwrap_or(-1))
+                    ));
+                }
+                Err(e) => {
+                    self.log_line(&t!(
+                        "log.eject_failed",
+                        path = dev.display().to_string(),
+                        err = e.to_string()
+                    ));
+                }
             }
         }
     }

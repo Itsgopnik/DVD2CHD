@@ -1566,14 +1566,14 @@ impl AnimationState {
                 painter.text(
                     Pos2::new(content_x, status_y),
                     egui::Align2::LEFT_CENTER,
-                    &format!("Blocks: {}/{}", processed, total_blocks),
+                    format!("Blocks: {}/{}", processed, total_blocks),
                     egui::FontId::monospace(font_sm),
                     mul(accent, 0.20 * drive),
                 );
                 painter.text(
                     Pos2::new(content_x + content_w, status_y),
                     egui::Align2::RIGHT_CENTER,
-                    &format!("{:.1} MB/s", throughput_val),
+                    format!("{:.1} MB/s", throughput_val),
                     egui::FontId::monospace(font_sm),
                     mul(accent, 0.20 * drive),
                 );

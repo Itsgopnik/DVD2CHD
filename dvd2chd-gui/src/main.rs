@@ -1,4 +1,5 @@
-#![windows_subsystem = "windows"]
+// Hide console window in release builds; keep it for debug/dev builds
+#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 rust_i18n::i18n!("locales");
 

@@ -1,6 +1,18 @@
 use std::path::PathBuf;
 use std::process::Command;
 
+/// Hide console window on Windows when spawning child processes.
+#[cfg(windows)]
+fn hide_window(cmd: &mut Command) -> &mut Command {
+    use std::os::windows::process::CommandExt;
+    const CREATE_NO_WINDOW: u32 = 0x0800_0000;
+    cmd.creation_flags(CREATE_NO_WINDOW)
+}
+#[cfg(not(windows))]
+fn hide_window(cmd: &mut Command) -> &mut Command {
+    cmd
+}
+
 #[derive(Debug, Clone)]
 pub struct Drive {
     pub path: PathBuf,
@@ -97,83 +109,67 @@ fn probe_linux() -> Vec<Drive> {
 
 #[cfg(target_os = "windows")]
 fn probe_windows() -> Vec<Drive> {
-    use serde_json::Value;
-    let mut out = Vec::<Drive>::new();
+    // Native Win32: enumerate drive letters, filter for DRIVE_CDROM.
+    // No subprocess (powershell/wmic) needed — instant and silent.
 
-    let ps =
-        r#"Get-CimInstance Win32_CDROMDrive | Select-Object Drive,Name | ConvertTo-Json -Depth 2"#;
-    if let Ok(res) = Command::new("powershell")
-        .args(["-NoProfile", "-Command", ps])
-        .output()
-    {
-        if res.status.success() {
-            if let Ok(val) = serde_json::from_slice::<Value>(&res.stdout) {
-                match val {
-                    Value::Array(arr) => {
-                        for o in arr {
-                            let drive = o.get("Drive").and_then(|x| x.as_str());
-                            let name = o
-                                .get("Name")
-                                .and_then(|x| x.as_str())
-                                .map(|s| s.to_string());
-                            if let Some(d) = drive {
-                                out.push(Drive {
-                                    path: PathBuf::from(d),
-                                    model: name,
-                                    vendor: None,
-                                });
-                            }
-                        }
-                        if !out.is_empty() {
-                            return out;
-                        }
-                    }
-                    Value::Object(o) => {
-                        let drive = o.get("Drive").and_then(|x| x.as_str());
-                        let name = o
-                            .get("Name")
-                            .and_then(|x| x.as_str())
-                            .map(|s| s.to_string());
-                        if let Some(d) = drive {
-                            out.push(Drive {
-                                path: PathBuf::from(d),
-                                model: name,
-                                vendor: None,
-                            });
-                            return out;
-                        }
-                    }
-                    _ => {}
-                }
-            }
-        }
+    #[link(name = "kernel32")]
+    extern "system" {
+        fn GetLogicalDriveStringsW(len: u32, buf: *mut u16) -> u32;
+        fn GetDriveTypeW(root: *const u16) -> u32;
+    }
+    const DRIVE_CDROM: u32 = 5;
+
+    let mut buf = [0u16; 256];
+    let len = unsafe { GetLogicalDriveStringsW(buf.len() as u32, buf.as_mut_ptr()) };
+    if len == 0 {
+        return Vec::new();
     }
 
-    // Fallback: WMIC CSV
-    if let Ok(res) = Command::new("wmic")
-        .args(["cdrom", "get", "Drive,Name", "/format:csv"])
-        .output()
-    {
-        if res.status.success() {
-            let txt = String::from_utf8_lossy(&res.stdout);
-            for line in txt.lines().skip(1) {
-                let parts: Vec<_> = line.split(',').collect(); // Node,Drive,Name
-                if parts.len() >= 3 {
-                    let drive = parts[1].trim();
-                    let name = parts[2].trim();
-                    if !drive.is_empty() {
-                        out.push(Drive {
-                            path: PathBuf::from(drive),
-                            model: Some(name.to_string()),
-                            vendor: None,
-                        });
-                    }
-                }
-            }
+    let mut out = Vec::new();
+    // Buffer contains null-separated root paths: "A:\\\0C:\\\0D:\\\0\0"
+    for root in buf[..len as usize].split(|&c| c == 0) {
+        if root.is_empty() {
+            continue;
+        }
+        let drive_type = unsafe { GetDriveTypeW(root.as_ptr()) };
+        if drive_type == DRIVE_CDROM {
+            let root_str = String::from_utf16_lossy(root);
+            // "D:\\" → "D:"
+            let letter = root_str.trim_end_matches('\\');
+            out.push(Drive {
+                path: PathBuf::from(letter),
+                model: wmi_drive_name(letter),
+                vendor: None,
+            });
         }
     }
 
     out
+}
+
+/// Query WMI for the friendly name of a CD/DVD drive (e.g. "HL-DT-ST DVDRAM").
+/// Uses a hidden wmic subprocess — returns None silently on failure.
+#[cfg(target_os = "windows")]
+fn wmi_drive_name(drive_letter: &str) -> Option<String> {
+    let mut cmd = Command::new("wmic");
+    cmd.args(["cdrom", "get", "Drive,Name", "/format:csv"]);
+    hide_window(&mut cmd);
+    let res = cmd.output().ok()?;
+    if !res.status.success() {
+        return None;
+    }
+    let txt = String::from_utf8_lossy(&res.stdout);
+    for line in txt.lines().skip(1) {
+        let parts: Vec<_> = line.split(',').collect(); // Node,Drive,Name
+        if parts.len() >= 3 {
+            let d = parts[1].trim();
+            let name = parts[2].trim();
+            if d.eq_ignore_ascii_case(drive_letter) && !name.is_empty() {
+                return Some(name.to_string());
+            }
+        }
+    }
+    None
 }
 
 #[cfg(target_os = "macos")]
