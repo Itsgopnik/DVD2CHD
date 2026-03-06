@@ -354,9 +354,7 @@ pub fn extract_chd(
             match run_extract(&chdman, "extractdvd", input, &iso, opts, sink.clone()) {
                 Ok(p) => Ok(p),
                 Err(dvd_err) => {
-                    sink.log(&format!(
-                        "extractdvd failed ({dvd_err}), retrying as CD…"
-                    ));
+                    sink.log(&format!("extractdvd failed ({dvd_err}), retrying as CD…"));
                     let cue = unique_path(out_dir.join(format!("{stem}.cue")));
                     run_extract(&chdman, "extractcd", input, &cue, opts, sink)
                 }

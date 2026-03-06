@@ -13,9 +13,8 @@ use std::{
     time::{SystemTime, UNIX_EPOCH},
 };
 
-static PS_ID_RE: Lazy<Regex> = Lazy::new(|| {
-    Regex::new(r"BOOT\d?\s*=\s*cdrom0?:\\([^;]+);1").expect("compile ps_id regex")
-});
+static PS_ID_RE: Lazy<Regex> =
+    Lazy::new(|| Regex::new(r"BOOT\d?\s*=\s*cdrom0?:\\([^;]+);1").expect("compile ps_id regex"));
 
 use crate::{
     hash::log_hashes,

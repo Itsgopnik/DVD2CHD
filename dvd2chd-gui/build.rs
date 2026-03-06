@@ -84,7 +84,9 @@ fn install_dev_desktop_files(manifest_dir: &Path) {
     }
 
     // Ask KDE to refresh its icon cache so the new icon is picked up immediately.
-    let _ = std::process::Command::new("kbuildsycoca6").arg("--noincremental").output();
+    let _ = std::process::Command::new("kbuildsycoca6")
+        .arg("--noincremental")
+        .output();
 }
 
 fn find_target_dir() -> Option<PathBuf> {
