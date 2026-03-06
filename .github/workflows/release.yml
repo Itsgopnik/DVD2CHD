@@ -38,7 +38,7 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y libgtk-3-dev libfuse2 patchelf libmad0
+          sudo apt-get install -y libgtk-3-dev libfuse2 patchelf libmad0 imagemagick
 
       - name: Install packaging tools
         run: |
