@@ -733,9 +733,11 @@ impl AnimationState {
         let color_chd = Color32::from_rgba_unmultiplied(167, 139, 250, 180);
 
         if drive > 0.01 {
-            let scroll_offset = cycle * belt_len * 1.5;
             let num_slots = ((belt_len + pkg_spacing) / pkg_spacing) as usize + 2;
             let wrap_len = num_slots as f32 * pkg_spacing;
+            // Use wrap_len as the scroll period so that cycle=0 and cycle=1
+            // produce identical positions — no visible jump on wrap-around.
+            let scroll_offset = cycle * wrap_len;
 
             for i in 0..num_slots {
                 let raw_pos =
