@@ -85,16 +85,13 @@ jobs:
         env:
           DEPLOY_GTK_VERSION: 3
         run: |
-          # AppDir layout matches probe_tool's installed search path:
-          #   binary → AppDir/usr/bin/dvd2chd-gui
-          #   tools  → AppDir/usr/lib/dvd2chd/tools/<name>
+          # AppImage contains only the GUI binary.
+          # Tools (chdman, cdrdao, ddrescue) must be installed system-wide;
+          # the bundled pre-built binaries are Arch-compiled and not portable
+          # enough to link against Ubuntu runner libs.
           mkdir -p AppDir/usr/bin
-          mkdir -p AppDir/usr/lib/dvd2chd/tools
 
           cp target/release/dvd2chd-gui         AppDir/usr/bin/
-          cp target/release/tools/chdman        AppDir/usr/lib/dvd2chd/tools/
-          cp target/release/tools/cdrdao        AppDir/usr/lib/dvd2chd/tools/
-          cp target/release/tools/ddrescue      AppDir/usr/lib/dvd2chd/tools/
           mkdir -p AppDir/usr/share/doc/dvd2chd
           cp BUNDLED_TOOLS.md                   AppDir/usr/share/doc/dvd2chd/
           cp LICENSE                            AppDir/usr/share/doc/dvd2chd/
