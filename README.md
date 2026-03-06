@@ -483,6 +483,7 @@ MIT — see [LICENSE](LICENSE).
 
 ## Acknowledgments
 
+- [itsgopnik/DVD2CHD](https://github.com/Itsgopnik/DVD2CHD) — original project by [@Itsgopnik](https://github.com/Itsgopnik), this fork adds Windows-native support
 - [MAME Project](https://www.mamedev.org) — `chdman`
 - [cdrdao](https://cdrdao.sourceforge.net) — CD ripping (Linux)
 - [GNU ddrescue](https://www.gnu.org/software/ddrescue/) — data recovery (Linux)
