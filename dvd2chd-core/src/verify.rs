@@ -6,7 +6,7 @@ use std::{
     sync::Arc,
 };
 
-use crate::util::wait_with_cancel;
+use crate::util::{hide_console_window, wait_with_cancel};
 use crate::{CoreError, CoreResult, ProgressSink, StageEvent, CHDMAN_PERCENT_FLOAT_RE};
 
 pub(crate) fn run_verify(chdman: &Path, chd: &Path, sink: Arc<dyn ProgressSink>) -> CoreResult<()> {
@@ -18,6 +18,7 @@ pub(crate) fn run_verify(chdman: &Path, chd: &Path, sink: Arc<dyn ProgressSink>)
         .arg(chd)
         .stdout(Stdio::piped())
         .stderr(Stdio::piped());
+    hide_console_window(&mut cmd);
 
     let mut child = cmd.spawn().map_err(CoreError::Io)?;
     let stdout = child

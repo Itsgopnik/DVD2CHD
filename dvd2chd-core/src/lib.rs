@@ -10,6 +10,9 @@ mod verify;
 #[cfg(target_os = "linux")]
 mod linux;
 
+#[cfg(windows)]
+pub mod windows_rip;
+
 use anyhow::{anyhow, Result};
 use once_cell::sync::Lazy;
 use regex::Regex;
@@ -135,8 +138,14 @@ pub fn archive_device(
     {
         linux::archive_device_linux(device, profile, opts, sink)
     }
-    #[cfg(not(target_os = "linux"))]
+    #[cfg(windows)]
     {
+        let _ = profile; // profile selection handled inside windows_rip
+        windows_rip::archive_device_windows(device, opts, sink)
+    }
+    #[cfg(not(any(target_os = "linux", windows)))]
+    {
+        let _ = (device, profile, opts, &sink);
         Err(CoreError::UnsupportedPlatform)
     }
 }
@@ -195,6 +204,7 @@ pub fn convert_file(
         .args(extras);
     let mut cmd = wrap_priority(base, opts.run_nice, opts.run_ionice);
     cmd.stdout(Stdio::piped()).stderr(Stdio::piped());
+    util::hide_console_window(&mut cmd);
 
     sink.stage(StageEvent::ChdStarted);
     sink.log(&format!(
@@ -202,6 +212,9 @@ pub fn convert_file(
         input.display(),
         chd_part.display()
     ));
+
+    // Get input file size for speed calculation
+    let input_bytes = input.metadata().map(|m| m.len()).unwrap_or(0);
 
     let mut child = cmd
         .spawn()
@@ -217,12 +230,20 @@ pub fn convert_file(
 
     {
         let s = sink.clone();
+        let chd_start = std::time::Instant::now();
         std::thread::spawn(move || {
             for line in BufReader::new(stdout).lines().map_while(Result::ok) {
                 if let Some(c) = CHDMAN_PERCENT_RE.captures(&line) {
                     if let Ok(p) = c[1].parse::<f32>() {
                         s.percent((p / 100.0).min(1.0));
-                        s.label(&format!("CHD: {p:.0}%"));
+                        let elapsed = chd_start.elapsed().as_secs_f64();
+                        let speed = if elapsed > 0.5 && input_bytes > 0 {
+                            let processed = input_bytes as f64 * (p as f64 / 100.0);
+                            format!(" — {:.1} MB/s", processed / elapsed / 1_048_576.0)
+                        } else {
+                            String::new()
+                        };
+                        s.label(&format!("CHD: {p:.0}%{speed}"));
                     }
                 }
                 s.log(&line);
