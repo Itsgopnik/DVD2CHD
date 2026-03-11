@@ -167,7 +167,7 @@ jobs:
         run: |
           # Get the download URL for the latest MAME 64-bit Windows binary
           ASSET_URL=$(curl -s https://api.github.com/repos/mamedev/mame/releases/latest \
-            | jq -r '.assets[] | select(.name | test("64bit\\.exe$")) | .browser_download_url')
+            | jq -r '.assets[] | select(.name | test("b_x64\\.exe$")) | .browser_download_url')
           echo "Downloading MAME from: $ASSET_URL"
           curl -L -o mame.exe "$ASSET_URL"
           # Extract only chdman.exe from the self-extracting archive
