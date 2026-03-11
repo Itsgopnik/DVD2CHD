@@ -7,7 +7,7 @@ A Rust tool for archiving optical media (DVDs and CDs) to compressed CHD (Compre
 ## Features
 
 - **Multi-profile support** — PS1, PS2, generic CD, and PC disc profiles with auto-detection
-- **Device archiving** — Direct ripping from optical drives (Linux) with auto-eject
+- **Device archiving** — Direct ripping from optical drives (Linux & Windows) with auto-eject
 - **File conversion** — Convert existing ISO/CUE files to CHD
 - **CHD extraction** — Extract CHD back to ISO or BIN+CUE (auto-detects DVD vs. CD)
 - **Batch mode** — Queue multiple files for sequential processing
@@ -35,9 +35,13 @@ A Rust tool for archiving optical media (DVDs and CDs) to compressed CHD (Compre
 
 > **Note:** `dd` has been replaced by a native Rust implementation — no external `dd` binary required.
 
-**Windows / macOS:**
+**Windows:**
+- `chdman` — required for CHD creation (place in the same folder as `dvd2chd-gui.exe` or add to PATH)
+- Native Win32 disc ripper built-in — no external ripping tools needed
+
+**macOS:**
 - `chdman` — required for CHD creation
-- Device ripping is Linux-only; file conversion works on all platforms
+- Device ripping is not supported; file conversion works
 
 ### Build Dependencies
 
@@ -57,9 +61,10 @@ Download the latest release from the [Releases page](https://github.com/Itsgopni
 | `.AppImage` | Any Linux | `chmod +x dvd2chd-*.AppImage && ./dvd2chd-*.AppImage` |
 | `PKGBUILD` | Arch / CachyOS / Manjaro | `makepkg -si` |
 | `.tar.gz` | Any Linux | Extract and run `dvd2chd-gui` |
+| `.zip` | Windows x86_64 | Extract and run `dvd2chd-gui.exe` |
 
 > The `.deb`, `.rpm`, and `.tar.gz` packages bundle `chdman`, `cdrdao`, and `ddrescue`.
-> The AppImage requires these tools to be installed system-wide.
+> The AppImage and Windows `.zip` require `chdman` to be installed separately.
 
 ### From Source
 
@@ -146,6 +151,7 @@ dvd2chd/
 │       ├── util.rs        # sanitize_filename, unique_path, …
 │       ├── hash.rs        # MD5/SHA1 computation
 │       ├── verify.rs      # CHD verification
+│       ├── windows_rip.rs # Native Win32 DVD/CD ripper
 │       └── linux/
 │           ├── mod.rs     # archive_device_linux, media detection
 │           ├── dvd.rs     # DVD ripping (native Rust reader + ddrescue)
@@ -222,3 +228,4 @@ MIT — see [LICENSE](LICENSE).
 - [cdrdao](https://cdrdao.sourceforge.net) — CD ripping
 - [GNU ddrescue](https://www.gnu.org/software/ddrescue/) — data recovery
 - [egui](https://github.com/emilk/egui) — immediate mode GUI framework
+- [@Seiroh0](https://github.com/Seiroh0) — Windows native ripper
