@@ -122,17 +122,21 @@ jobs:
             -e "s/__SHA256__/${SHA256}/g" \
             dvd2chd-gui/packaging/PKGBUILD.template > PKGBUILD
 
-      # ── GitHub Release (Linux artifacts) ─────────────────────────────────────
+      # ── Collect artifacts into a flat directory ─────────────────────────────
+      - name: Flatten artifacts
+        run: |
+          mkdir -p artifacts
+          cp dvd2chd-*-linux-x86_64.tar.gz  artifacts/
+          cp dvd2chd-*-linux-x86_64.AppImage artifacts/
+          cp target/debian/*.deb             artifacts/
+          cp target/generate-rpm/*.rpm       artifacts/
+          cp PKGBUILD                        artifacts/
+
       - name: Upload Linux artifacts
         uses: actions/upload-artifact@v4
         with:
           name: linux-artifacts
-          path: |
-            dvd2chd-*-linux-x86_64.tar.gz
-            dvd2chd-*-linux-x86_64.AppImage
-            target/debian/*.deb
-            target/generate-rpm/*.rpm
-            PKGBUILD
+          path: artifacts/*
 
   build-windows:
     name: Build Windows x86_64
