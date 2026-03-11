@@ -63,8 +63,9 @@ Download the latest release from the [Releases page](https://github.com/Itsgopni
 | `.tar.gz` | Any Linux | Extract and run `dvd2chd-gui` |
 | `.zip` | Windows x86_64 | Extract and run `dvd2chd-gui.exe` |
 
-> The `.deb`, `.rpm`, and `.tar.gz` packages bundle `chdman`, `cdrdao`, and `ddrescue`.
-> The AppImage and Windows `.zip` require `chdman` to be installed separately.
+> The `.deb`, `.rpm`, `.tar.gz`, and Windows `.zip` packages bundle `chdman`.
+> The Linux packages additionally include `cdrdao` and `ddrescue`.
+> The AppImage requires tools to be installed system-wide.
 
 ### From Source
 

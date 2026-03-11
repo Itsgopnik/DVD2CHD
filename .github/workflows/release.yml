@@ -162,6 +162,25 @@ jobs:
       - name: Build release binary
         run: cargo build --release -p dvd2chd-gui
 
+      - name: Download chdman from MAME
+        shell: bash
+        run: |
+          # Get the download URL for the latest MAME 64-bit Windows binary
+          ASSET_URL=$(curl -s https://api.github.com/repos/mamedev/mame/releases/latest \
+            | jq -r '.assets[] | select(.name | test("64bit\\.exe$")) | .browser_download_url')
+          echo "Downloading MAME from: $ASSET_URL"
+          curl -L -o mame.exe "$ASSET_URL"
+          # Extract only chdman.exe from the self-extracting archive
+          7z e mame.exe chdman.exe -ochdman_tmp || true
+          if [ -f chdman_tmp/chdman.exe ]; then
+            mv chdman_tmp/chdman.exe .
+            echo "CHDMAN_BUNDLED=true" >> "$GITHUB_ENV"
+          else
+            echo "::warning::chdman.exe not found in MAME archive"
+            echo "CHDMAN_BUNDLED=false" >> "$GITHUB_ENV"
+          fi
+          rm -rf mame.exe chdman_tmp
+
       - name: Package zip
         shell: bash
         run: |
@@ -169,6 +188,7 @@ jobs:
           DIST="dvd2chd-${TAG}-windows-x86_64"
           mkdir -p "$DIST"
           cp target/release/dvd2chd-gui.exe "$DIST/"
+          [ -f chdman.exe ] && cp chdman.exe "$DIST/"
           cp BUNDLED_TOOLS.md               "$DIST/"
           cp LICENSE                        "$DIST/"
           7z a "${DIST}.zip" "$DIST"
