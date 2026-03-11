@@ -35,6 +35,8 @@ impl App {
         if self.tools.chdman.is_none() {
             missing.push(ToolRequirement::Chdman);
         }
+        // On Windows the native Win32 ripper is used — cdrdao/ddrescue not needed.
+        #[cfg(not(windows))]
         if matches!(intent, super::job::JobIntent::Device) {
             if self.tools.cdrdao.is_none() {
                 missing.push(ToolRequirement::Cdrdao);
@@ -83,11 +85,14 @@ impl App {
         if self.tools.chdman.is_none() {
             to_install.push("chdman".to_string());
         }
-        if self.tools.cdrdao.is_none() {
-            to_install.push("cdrdao".to_string());
-        }
-        if self.tools.ddrescue.is_none() {
-            to_install.push("ddrescue".to_string());
+        #[cfg(not(windows))]
+        {
+            if self.tools.cdrdao.is_none() {
+                to_install.push("cdrdao".to_string());
+            }
+            if self.tools.ddrescue.is_none() {
+                to_install.push("ddrescue".to_string());
+            }
         }
 
         if to_install.is_empty() {

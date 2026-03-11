@@ -232,38 +232,42 @@ impl App {
                             .unwrap_or_else(|| "PATH".into());
                         ui.label(lbl.as_str());
                     });
-                    ui.horizontal(|ui| {
-                        if ui.button("ddrescue…").clicked() {
-                            if let Some(p) = rfd::FileDialog::new().pick_file() {
-                                self.s.ddrescue_path = Some(p);
-                                self.reprobe_tools();
-                                self.save_settings();
+                    // ddrescue and cdrdao are Linux-only; Windows uses native Win32 ripper.
+                    #[cfg(not(windows))]
+                    {
+                        ui.horizontal(|ui| {
+                            if ui.button("ddrescue…").clicked() {
+                                if let Some(p) = rfd::FileDialog::new().pick_file() {
+                                    self.s.ddrescue_path = Some(p);
+                                    self.reprobe_tools();
+                                    self.save_settings();
+                                }
                             }
-                        }
-                        let lbl = self
-                            .s
-                            .ddrescue_path
-                            .as_ref()
-                            .map(|p| p.display().to_string())
-                            .unwrap_or_else(|| "PATH".into());
-                        ui.label(lbl.as_str());
-                    });
-                    ui.horizontal(|ui| {
-                        if ui.button("cdrdao…").clicked() {
-                            if let Some(p) = rfd::FileDialog::new().pick_file() {
-                                self.s.cdrdao_path = Some(p);
-                                self.reprobe_tools();
-                                self.save_settings();
+                            let lbl = self
+                                .s
+                                .ddrescue_path
+                                .as_ref()
+                                .map(|p| p.display().to_string())
+                                .unwrap_or_else(|| "PATH".into());
+                            ui.label(lbl.as_str());
+                        });
+                        ui.horizontal(|ui| {
+                            if ui.button("cdrdao…").clicked() {
+                                if let Some(p) = rfd::FileDialog::new().pick_file() {
+                                    self.s.cdrdao_path = Some(p);
+                                    self.reprobe_tools();
+                                    self.save_settings();
+                                }
                             }
-                        }
-                        let lbl = self
-                            .s
-                            .cdrdao_path
-                            .as_ref()
-                            .map(|p| p.display().to_string())
-                            .unwrap_or_else(|| "PATH".into());
-                        ui.label(lbl.as_str());
-                    });
+                            let lbl = self
+                                .s
+                                .cdrdao_path
+                                .as_ref()
+                                .map(|p| p.display().to_string())
+                                .unwrap_or_else(|| "PATH".into());
+                            ui.label(lbl.as_str());
+                        });
+                    }
 
                     ui.add_space(6.0);
                     if ui.button(t!("tools.refresh").as_ref()).clicked() {
